@@ -4,6 +4,7 @@
  */
 package ocr.entities;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.neuroph.core.NeuralNetwork;
@@ -23,10 +24,14 @@ public class OCR {
     private DataSet conjunto;
 
     //CONSTRUTORES
-    public OCR() {
+    public OCR(Integer numPixels) {
+        this.rede = new NeuralNetwork();
+        this.treino = new HashMap<>();
+        this.conjunto = new DataSet(numPixels);
     }//end construtor
 
-    public OCR(NeuralNetwork rede, Map<Image, Integer> treino) {
+    public OCR(NeuralNetwork rede, Map<Image, Integer> treino,
+            Integer numPixels) {
         this.rede = rede;
         this.treino = treino;
     }//end construtor
@@ -59,8 +64,7 @@ public class OCR {
                 0,//x
                 0,//y
                 imagem.getWidth(),//Largura
-                imagem.getHeight()
-                );//Altura
+                imagem.getHeight());//Altura
 
         //Realizando conversão para Double
         entrada = new double[pixels.length];
@@ -77,47 +81,43 @@ public class OCR {
 
     /**
      * Adiciona uma imagem rotulada ao conjunto de treino
+     *
      * @param imagem
      * @param classe
      */
     public void adicionarImagemAoTreino(Image imagem, Integer classe,
             String rotulo) {
-        int[] pixels;
         double[] entrada;
         double[] saidaEsperada;
         DataSetRow dados;
+        int largura = imagem.getWidth();
+        int altura = imagem.getHeight();
 
         this.treino.put(imagem, classe);//Adiciona a imagem no vetor de treino
 
-        //Obtém o vetor de pixels da imagem
-        pixels = imagem.getPixels(
-                0,//Offset
-                1,//Stride
-                0,//x
-                0,//y
-                imagem.getWidth(),//Largura
-                imagem.getHeight()
-                );//Altura
-
         //Realizando conversão para Double
-        entrada = new double[pixels.length];
+        entrada = new double[largura * altura];
         saidaEsperada = new double[1];
 
-        for (int i = 0; i < pixels.length; i++) {
-            entrada[i] = (double) pixels[i];
-        }//end for        
-        saidaEsperada[0] = (double) classe;
+        for (int i = 0; i < largura; i++) {
+            for (int j = 0; j < altura; j++) {
+                entrada[i] = (double) imagem.getPixel(i, j);
+            }
+        }//end for
         
+        saidaEsperada[0] = (double) classe;
+
         //Define os dados (pixels) e o rótulo
         dados = new DataSetRow(entrada, saidaEsperada);
         dados.setLabel(rotulo);
-        
+
         //Adicionando no conjunto de treinamento
         this.conjunto.addRow(dados);
     }//end adicionarImagemAoTreino
 
     /**
      * Retorna a classe da imagem removida
+     *
      * @param imagem
      * @return classe
      */
@@ -137,6 +137,39 @@ public class OCR {
 
         return this.treino.remove(imagem);
     }//end removerImagemDoTreino
+
+    /**
+     * Retorna a classe obtida do reconhecimento
+     *
+     * @param imagem
+     * @return
+     */
+    public Integer reconhecer(Image imagem) {
+        double[] entrada;
+        double[] saidaObtida;
+        int largura = imagem.getWidth();
+        int altura = imagem.getHeight();
+
+        //Realizando conversão para Double
+        entrada = new double[largura * altura];
+
+        for (int i = 0; i < largura; i++) {
+            for (int j = 0; j < altura; j++) {
+                entrada[i] = (double) imagem.getPixel(i, j);
+            }
+        }//end for
+
+        //Define uma nova entrada na rede neural
+        this.rede.setInput(entrada);
+
+        //Calcula a rede neural com a entrada dada
+        this.rede.calculate();
+
+        //Obtém a saída da rede neural
+        saidaObtida = this.rede.getOutput();
+
+        return (int) saidaObtida[0];
+    }//end reconhecer
 
     //GETTERS AND SETTERS
     public NeuralNetwork getRede() {
