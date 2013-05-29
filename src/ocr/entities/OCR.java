@@ -78,7 +78,6 @@ public class OCR implements LearningEventListener {
 
     /**
      * Adiciona uma imagem ao conjunto de treino
-     *
      * @param imagem
      * @param classe
      */
@@ -103,7 +102,6 @@ public class OCR implements LearningEventListener {
 
     /**
      * Adiciona uma imagem rotulada ao conjunto de treino
-     *
      * @param imagem
      * @param classe
      */
