@@ -2,6 +2,11 @@ package ocr.gui;
 
 import com.sun.java.swing.plaf.windows.WindowsLookAndFeel;
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.FlowLayout;
+import java.awt.GraphicsEnvironment;
+import java.awt.Rectangle;
+import java.awt.Toolkit;
 import javax.swing.*;
 
 /**
@@ -19,6 +24,8 @@ public class Janela  extends JFrame {
 
     private static Janela mainFrame = null;
 
+    private JPanel esquerda, direita;
+    
     private Janela() {
         super("Image Recognition");
         init();
@@ -32,28 +39,46 @@ public class Janela  extends JFrame {
     }
 
     private void init() {
-
+        
+        //this.setExtendedState(JFrame.MAXIMIZED_BOTH);
+        
         try {
             UIManager.setLookAndFeel(new WindowsLookAndFeel());
         } catch (Exception ex) {}
-        getContentPane().setLayout(new BorderLayout());
+        this.getContentPane().setLayout(null);
 
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
-
-        setSize(777, 666);
+        this.setDefaultCloseOperation(EXIT_ON_CLOSE);
 
         mainMenu.setMainFrame(this);
         setJMenuBar(mainMenu);
+   
+        Rectangle maxBounds = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
+        this.setBounds(maxBounds);
+        
+        esquerda = new JPanel ();
+        esquerda.setLocation (0,0);
+        esquerda.setSize((int)maxBounds.width/2,
+                         (int)maxBounds.height - 60);
+        //esquerda.setBackground(Color.red);
+        
+        direita = new JPanel();
+        direita.setLocation (((int)maxBounds.width/2), 0);
+        direita.setSize((int)maxBounds.width/2 - 20,
+                         (int)maxBounds.height - 60);
+        //direita.setBackground(Color.blue);
+        direita.setLayout(new BorderLayout( ));
+        
+        this.add(esquerda);
+        this.add(direita);
+        
+        direita.add(imagesPanel, BorderLayout.EAST);
 
-         
-        add(imagesPanel, BorderLayout.EAST);
-
-        add(drawingPanel, BorderLayout.CENTER);
+        direita.add(drawingPanel, BorderLayout.CENTER);
 
         drawingControlPanel.addDrawingControlObserver(drawingPanel);
         drawingControlPanel.addImagesContainer(imagesPanel);
         drawingControlPanel.setImageGetter(drawingPanel);
-        add(drawingControlPanel, BorderLayout.SOUTH);
+        direita.add(drawingControlPanel, BorderLayout.SOUTH);
 
         imagesPanel.addSelectImageObserver(drawingPanel);
 
