@@ -8,11 +8,13 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Container;
 import java.awt.GraphicsEnvironment;
+import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Panel;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -24,7 +26,8 @@ import ocr.interfaces.Drawer_Observer;
  *
  * @author 407456
  */
-public class Janela extends JFrame implements Drawer_Observable{
+public class Janela extends JFrame implements Drawer_Observable {
+
     private ArrayList<Drawer_Observer> observadores;
     private PainelDesenho painel;
     private JButton botaoAdicionar, botaoLimpar;
@@ -32,11 +35,10 @@ public class Janela extends JFrame implements Drawer_Observable{
     private Image imagem;
     private Panel esquerdaPanel, direitaPanel;
     private Integer classe;
-    
-    public Janela(){
-        initComponents();        
-    }
-    
+
+    public Janela() {
+        initComponents();
+    }    
     public void initComponents(){
         Rectangle maxBounds = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
         
@@ -62,22 +64,24 @@ public class Janela extends JFrame implements Drawer_Observable{
         this.botaoLimpar = new JButton("Limpar Tela");
         
         //this.botaoAdicionar.setBounds(250, 250, 200, 50);
-        //this.botaoLimpar.setBounds(250, 350, 200, 50);
-        
-        this.botaoAdicionar.addActionListener(new ActionListener() {
+        //this.botaoLimpar.setBounds(250, 350, 200, 50);    
 
+        this.botaoAdicionar.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String resposta = JOptionPane.showInputDialog("Informe a classe da imagem:");
                 Integer classeDaImagem = Integer.parseInt(resposta);
-                imagem = null;//TODO: IMAGEM SERÁ DEFINIDA AQUI
-                classe = classeDaImagem;//Classe informada
+                
+                //Pega a imagem presente no painel e define na imagem da classe
+                gerarImagemDoPainel();
+                
+                //Classe informada
+                classe = classeDaImagem;
                 notificar();
             }
         });
-        
-        this.botaoLimpar.addActionListener(new ActionListener() {
 
+        this.botaoLimpar.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 painel.limpar();
@@ -98,7 +102,23 @@ public class Janela extends JFrame implements Drawer_Observable{
     public Integer getClasse() {
         return classe;
     }
-       
+
+    public void gerarImagemDoPainel() {        
+        //Cria imagem buferizada
+        BufferedImage bi = new BufferedImage(this.painel.getWidth(),
+                this.painel.getHeight(),
+                BufferedImage.TYPE_INT_RGB);
+        
+        //Pega os graficos da imagem
+        Graphics2D g = bi.createGraphics();
+        
+        //Pinta o painel nos gráficos da imagem
+        this.painel.paint(g);
+        
+        //Define nova imagem
+        this.imagem = bi;
+    }
+
     @Override
     public void adicionarObservador(Drawer_Observer observador) {
         observadores.add(observador);
@@ -115,5 +135,4 @@ public class Janela extends JFrame implements Drawer_Observable{
             drawer_Observer.atualizar(this);
         }
     }
-    
 }
