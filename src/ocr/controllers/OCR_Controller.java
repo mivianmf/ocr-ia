@@ -9,12 +9,15 @@ import java.awt.image.BufferedImage;
 import java.awt.image.ColorConvertOp;
 import java.io.File;
 import java.io.IOException;
+import java.util.Observer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 import ocr.entities.OCR;
 import ocr.gui.Janela;
+import ocr.interfaces.Drawer_Observable;
+import ocr.interfaces.Drawer_Observer;
 import org.neuroph.imgrec.image.Image;
 import org.neuroph.imgrec.image.ImageJ2SE;
 
@@ -23,7 +26,7 @@ import org.neuroph.imgrec.image.ImageJ2SE;
  *
  * @author Bruno, Mívian e Washington
  */
-public class OCR_Controller {
+public class OCR_Controller implements Drawer_Observer{
     static Janela janela;
     static OCR ocr;
     static Image imagem;
@@ -38,6 +41,9 @@ public class OCR_Controller {
             //Criação dos objetos
                         
             imagem = new ImageJ2SE(ImageIO.read(new File("sorriso1.jpg")));
+            
+            janela = new Janela();
+            janela.setTitle("OCR");
 
             //ocr = new OCR(imagem.getWidth() * imagem.getHeight());
 
@@ -63,7 +69,7 @@ public class OCR_Controller {
             
             //System.out.println("A classe da imagem é: "+ ocr.reconhecer(imagem));
             
-            janela.getMainFrame();
+            //janela.getMainFrame();
             //mostrarJanela();
         } catch (IOException ex) {
             Logger.getLogger(OCR_Controller.class.getName()).log(Level.SEVERE, null, ex);
@@ -84,4 +90,11 @@ public class OCR_Controller {
         janela.setTitle("OCR");//Define o título
         janela.setVisible(true);//Faz ficar visível
     }//end mostrarJanela
+
+    @Override
+    public void atualizar(Drawer_Observable observavel) {
+        //TODO: Trocar Image para awt.Image
+        //this.ocr.adicionarImagemAoTreino(((Janela)observavel).getImagem(),
+        //                                  ((Janela)observavel).getClasse());
+    }
 }
