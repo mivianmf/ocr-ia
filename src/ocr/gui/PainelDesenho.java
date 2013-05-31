@@ -16,22 +16,22 @@ import javax.swing.JPanel;
  *
  * @author 407456
  */
-public class Painel extends JPanel implements MouseListener, MouseMotionListener{
+public class PainelDesenho extends JPanel implements MouseListener, MouseMotionListener{
     private Image imagem;
     private boolean[][] pixels;
     public static final int TAMANHO_X = 200;
     public static final int TAMANHO_Y = 300;
     
 
-    public Painel() {
-        initComponents();
+    public PainelDesenho() {
+        this.initComponents();
     }
     
     public void initComponents(){
         this.imagem = null;
         this.pixels = new boolean[TAMANHO_X][TAMANHO_Y];
-        this.setBounds(10, 200, TAMANHO_X, TAMANHO_Y);
-        this.setBackground(Color.WHITE);
+        //this.setBounds(10, 200, TAMANHO_X, TAMANHO_Y);
+        this.setBackground(Color.green);
         
         this.addMouseListener(this);
         this.addMouseMotionListener(this);
