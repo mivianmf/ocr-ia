@@ -64,40 +64,11 @@ public class Janela extends JFrame implements Drawer_Observable {
         this.direitaPanel.add(painelDesenho, BorderLayout.CENTER);
         
         this.controlePainelDesenho = new ControlePainelDesenho();
+        this.controlePainelDesenho.addControleDesenhoObservador(painelDesenho);
+        this.controlePainelDesenho.setImagemGetter(painelDesenho);
+        
         this.direitaPanel.add(controlePainelDesenho, BorderLayout.SOUTH);
         
-        //this.botaoAdicionar = new JButton("Adicionar ao Treino");
-        //this.botaoLimpar = new JButton("Limpar Tela");
-        
-        //this.botaoAdicionar.setBounds(250, 250, 200, 50);
-        //this.botaoLimpar.setBounds(250, 350, 200, 50);    
-
-        /*this.botaoAdicionar.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String resposta = JOptionPane.showInputDialog("Informe a classe da imagem:");
-                Integer classeDaImagem = Integer.parseInt(resposta);
-                
-                //Pega a imagem presente no painel e define na imagem da classe
-                gerarImagemDoPainel();
-                
-                //Classe informada
-                classe = classeDaImagem;
-                notificar();
-            }
-        });*/
-
-        /*this.botaoLimpar.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                painelDesenho.limpar();
-            }
-        });
-        
-        direitaPanel.add(botaoAdicionar, BorderLayout.SOUTH);
-        direitaPanel.add(botaoLimpar, BorderLayout.EAST);
-        direitaPanel.add(painelDesenho, BorderLayout.CENTER);
-        */
         this.setVisible(true);
     }//end init
 

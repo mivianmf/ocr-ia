@@ -7,19 +7,23 @@ package ocr.gui;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Image;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.geom.Rectangle2D;
+import java.awt.image.BufferedImage;
+import java.awt.image.PixelGrabber;
 import javax.swing.JPanel;
+import ocr.controllers.ControleDesenhoObservador;
+import ocr.controllers.ImagemGetter;
 
 /**
  *
  * @author 407456
  */
-public class PainelDesenho extends JPanel implements MouseListener, MouseMotionListener{
-    private Image imagem;
+public class PainelDesenho extends JPanel implements MouseListener, MouseMotionListener,
+                                                     ImagemGetter, ControleDesenhoObservador{
+    private BufferedImage imagem;
     private int[] pixels;
     public static final int TAMANHO_X = 100;
     public static final int TAMANHO_Y = 100;
@@ -92,12 +96,21 @@ public class PainelDesenho extends JPanel implements MouseListener, MouseMotionL
         paintGrid(g);
     }
     
-    public Image getImagem() {
-        return this.imagem;
+    public BufferedImage getImagem() {
+        int width = this.getWidth();
+        int height = this.getHeight();
+        
+        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        Graphics2D graphics = image.createGraphics();
+        this.paint(graphics);
+        
+        return image;
     }
     
     public void limpar(){
-        this.pixels = new int[TAMANHO_X * TAMANHO_Y];
+        for (int i=0; i < pixels.length; i++){
+            pixels[i] = 0xFFFFFFFF;
+        }
         this.repaint();
     }
        
@@ -144,5 +157,15 @@ public class PainelDesenho extends JPanel implements MouseListener, MouseMotionL
     @Override
     public void mouseMoved(MouseEvent e) {
     }
-    
+
+    @Override
+    public void mudarImagemSelecionada(BufferedImage img) {
+        PixelGrabber pg = new PixelGrabber(img, 0, 0, TAMANHO_X, TAMANHO_Y, pixels, 0, TAMANHO_X);
+        try{
+            pg.grabPixels();
+        }
+        catch(InterruptedException ex){
+            throw new RuntimeException(ex.getMessage());
+        }
+    }
 }
