@@ -7,8 +7,8 @@ package ocr.gui;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Container;
-import java.awt.GraphicsEnvironment;
 import java.awt.Graphics2D;
+import java.awt.GraphicsEnvironment;
 import java.awt.Image;
 import java.awt.Panel;
 import java.awt.Rectangle;
@@ -29,8 +29,9 @@ import ocr.interfaces.Drawer_Observer;
 public class Janela extends JFrame implements Drawer_Observable {
 
     private ArrayList<Drawer_Observer> observadores;
-    private PainelDesenho painel;
-    private JButton botaoAdicionar, botaoLimpar;
+    private PainelDesenho painelDesenho;
+    //private JButton botaoAdicionar, botaoLimpar;
+    private ControlePainelDesenho controlePainelDesenho;
     private Container container;
     private Image imagem;
     private Panel esquerdaPanel, direitaPanel;
@@ -49,7 +50,7 @@ public class Janela extends JFrame implements Drawer_Observable {
         
         esquerdaPanel = new Panel ( );
         esquerdaPanel.setLayout (new BorderLayout( ));
-        esquerdaPanel.setBounds(0, 0, maxBounds.getSize().width/2, maxBounds.getSize().height - 60);
+        esquerdaPanel.setBounds(0, 0, maxBounds.getSize().width/2, maxBounds.getSize().height - 38);
         esquerdaPanel.setBackground(Color.red);
         container.add(esquerdaPanel);
         
@@ -59,14 +60,19 @@ public class Janela extends JFrame implements Drawer_Observable {
         direitaPanel.setBackground(Color.blue);
         container.add(direitaPanel);
         
-        this.painel = new PainelDesenho();
-        this.botaoAdicionar = new JButton("Adicionar ao Treino");
-        this.botaoLimpar = new JButton("Limpar Tela");
+        this.painelDesenho = new PainelDesenho();
+        this.direitaPanel.add(painelDesenho, BorderLayout.CENTER);
+        
+        this.controlePainelDesenho = new ControlePainelDesenho();
+        this.direitaPanel.add(controlePainelDesenho, BorderLayout.SOUTH);
+        
+        //this.botaoAdicionar = new JButton("Adicionar ao Treino");
+        //this.botaoLimpar = new JButton("Limpar Tela");
         
         //this.botaoAdicionar.setBounds(250, 250, 200, 50);
         //this.botaoLimpar.setBounds(250, 350, 200, 50);    
 
-        this.botaoAdicionar.addActionListener(new ActionListener() {
+        /*this.botaoAdicionar.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String resposta = JOptionPane.showInputDialog("Informe a classe da imagem:");
@@ -79,19 +85,19 @@ public class Janela extends JFrame implements Drawer_Observable {
                 classe = classeDaImagem;
                 notificar();
             }
-        });
+        });*/
 
-        this.botaoLimpar.addActionListener(new ActionListener() {
+        /*this.botaoLimpar.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                painel.limpar();
+                painelDesenho.limpar();
             }
         });
         
         direitaPanel.add(botaoAdicionar, BorderLayout.SOUTH);
         direitaPanel.add(botaoLimpar, BorderLayout.EAST);
-        direitaPanel.add(painel, BorderLayout.CENTER);
-        
+        direitaPanel.add(painelDesenho, BorderLayout.CENTER);
+        */
         this.setVisible(true);
     }//end init
 
@@ -105,15 +111,15 @@ public class Janela extends JFrame implements Drawer_Observable {
 
     public void gerarImagemDoPainel() {        
         //Cria imagem buferizada
-        BufferedImage bi = new BufferedImage(this.painel.getWidth(),
-                this.painel.getHeight(),
+        BufferedImage bi = new BufferedImage(this.painelDesenho.getWidth(),
+                this.painelDesenho.getHeight(),
                 BufferedImage.TYPE_INT_RGB);
         
         //Pega os graficos da imagem
         Graphics2D g = bi.createGraphics();
         
         //Pinta o painel nos gráficos da imagem
-        this.painel.paint(g);
+        this.painelDesenho.paint(g);
         
         //Define nova imagem
         this.imagem = bi;
