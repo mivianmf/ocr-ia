@@ -79,11 +79,25 @@ public class PainelDesenho extends JPanel implements MouseListener, MouseMotionL
             int intX = 0;
             for (double x = 0; intX < TAMANHO_X; x += getFieldWidth()) {
                 Rectangle2D rec = new Rectangle2D.Double(x, y, getFieldWidth(), getFieldHeight());
-
-                g2.setColor(new Color(pixels[intX + intY * TAMANHO_X]));
+                g2.setColor(new Color(0xFFFFFFFF));
                 g2.fill(rec);
-                //g2.setColor(Color.black);
-                //g2.draw(rec);
+                intX++;
+            }
+            intY++;
+        }
+    }
+    
+    private void paintCircles (Graphics g){
+        g.setColor(new Color(0x00000000));
+        int intY = 0;
+        for (double y = 0; intY < TAMANHO_Y; y += getFieldHeight()) {
+            //System.out.println(y);
+            int intX = 0;
+            for (double x = 0; intX < TAMANHO_X; x += getFieldWidth()) {
+                if(pixels[intX + intY * TAMANHO_X] == 0x00000000){
+                    g.fillOval((int)x, (int)y,
+                               (int)Math.ceil(this.getFieldWidth()) * 2, (int)Math.ceil(this.getFieldHeight()) * 2);
+                }                
                 intX++;
             }
             intY++;
@@ -92,8 +106,11 @@ public class PainelDesenho extends JPanel implements MouseListener, MouseMotionL
 
     @Override
     public void paintComponent(Graphics g) {
+        
         g.clearRect(0, 0, getWidth(), getHeight());
         paintGrid(g);
+        paintCircles(g);
+        
     }
     
     public BufferedImage getImagem() {

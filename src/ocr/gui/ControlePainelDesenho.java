@@ -8,7 +8,13 @@ import java.awt.BorderLayout;
 import java.awt.Panel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.image.RenderedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.imageio.ImageIO;
 import javax.swing.JButton;
 import ocr.controllers.ControleDesenhoObservador;
 import ocr.controllers.ImagemGetter;
@@ -32,7 +38,7 @@ public class ControlePainelDesenho extends Panel{
        this.setLayout (new BorderLayout ( ));
        
        this.salvar = new JButton ("Salvar Imagem");
-       
+       salvar.addActionListener (new BotaoSalvarAcao());
        
        this.limpar = new JButton ("Limpar");
        limpar.addActionListener(new BotaoLimparObservador());
@@ -56,7 +62,18 @@ public class ControlePainelDesenho extends Panel{
         observadores.remove(observer);
    }
    
-   
+   class BotaoSalvarAcao implements ActionListener{
+       @Override
+       public void actionPerformed (ActionEvent e){
+           if (imageGetter != null){
+               try {
+                   ImageIO.write((RenderedImage)imageGetter.getImagem(), "PNG", new File("mapa.PNG"));
+               } catch (IOException ex) {
+                   Logger.getLogger(ControlePainelDesenho.class.getName()).log(Level.SEVERE, null, ex);
+               }
+           }
+       }
+   }
    
    class BotaoLimparObservador implements ActionListener {
 
