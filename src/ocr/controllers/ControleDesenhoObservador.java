@@ -18,6 +18,6 @@ public interface ControleDesenhoObservador {
 
     void limpar();
 
-    void mudarImagemSelecionada(BufferedImage img);
+    //void mudarImagemSelecionada(BufferedImage img);
     
 }
