@@ -21,7 +21,6 @@ import ocr.controllers.ImagemGetter;
  */
 public class PainelDesenho extends JPanel implements MouseListener, MouseMotionListener,
                                                      ImagemGetter, ControleDesenhoObservador{
-    private BufferedImage imagem;
     private boolean[] pixels;
     private int TAMANHO_X;
     private int TAMANHO_Y;
@@ -32,8 +31,8 @@ public class PainelDesenho extends JPanel implements MouseListener, MouseMotionL
     }
     
     public void initComponents(){
-        this.imagem = null;
         
+        this.setBackground(Color.black);
         this.addMouseListener(this);
         this.addMouseMotionListener(this);
     }
@@ -44,18 +43,18 @@ public class PainelDesenho extends JPanel implements MouseListener, MouseMotionL
         
         for (double y = 0; y < TAMANHO_Y; y++) {
             for (double x = 0; x < TAMANHO_X; x++) {
-                if (pixels [(int)x + (int)y * TAMANHO_X]){
-                    
+                if (pixels [(int)x + (int)y * TAMANHO_X]){                    
                     g.fillOval((int)x - 5, (int)y - 5,
                                10, 10);
                 }
             }
         }
-    }
+    } 
+    
 
     @Override
     public void paintComponent(Graphics g) {
-        
+        g.clearRect(0, 0, this.TAMANHO_X, this.TAMANHO_Y);
         if(this.pixels == null){
             this.TAMANHO_X = this.getWidth();
             this.TAMANHO_Y = this.getHeight();
@@ -64,9 +63,11 @@ public class PainelDesenho extends JPanel implements MouseListener, MouseMotionL
             for (int i=0; i < pixels.length; i++){
                 pixels[i] = false;
             }
+            
         }
-        g.setColor(new Color(0xFFFFFFFF));
-        g.clearRect(0, 0, this.TAMANHO_X, this.TAMANHO_Y);
+        Graphics2D g2 = (Graphics2D) g;
+        g2.setColor(Color.white);
+        g2.fillRect(0, 0, this.TAMANHO_X, this.TAMANHO_Y);
         paintGrid(g);        
     }
     

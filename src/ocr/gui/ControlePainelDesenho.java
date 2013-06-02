@@ -72,6 +72,7 @@ public class ControlePainelDesenho extends Panel{
            
            if (imageGetter != null){
                try {
+                   
                    ImageIO.write((RenderedImage)imageGetter.getImagem(), 
                            "PNG", new File("src\\ocr\\images\\"+nome+"_"+cont+".PNG"));
                    cont ++;
