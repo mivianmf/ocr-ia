@@ -18,7 +18,9 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JTextField;
 import ocr.interfaces.Drawer_Observable;
 import ocr.interfaces.Drawer_Observer;
 
@@ -28,6 +30,10 @@ import ocr.interfaces.Drawer_Observer;
  */
 public class Janela extends JFrame implements Drawer_Observable {
 
+    //Gambiarra para criar as imagens
+    static JTextField nome;
+    static JTextField contador;
+            
     private ArrayList<Drawer_Observer> observadores;
     private PainelDesenho painelDesenho;
     //private JButton botaoAdicionar, botaoLimpar;
@@ -59,6 +65,27 @@ public class Janela extends JFrame implements Drawer_Observable {
         direitaPanel.setBounds (maxBounds.getSize( ).width/2, 0, maxBounds.getSize().width/2 - 16, maxBounds.getSize().height - 38);
         direitaPanel.setBackground(Color.blue);
         container.add(direitaPanel);
+        
+        //GAMBIARRA MASTER BLASTER PARA A CRIACAO DAS IMAGENS
+        esquerdaPanel.setLayout(null);
+        
+        JLabel lnome = new JLabel("Número que está sendo desenhado");
+        lnome.setBounds (10, 10, 250, 25);
+        esquerdaPanel.add(lnome);
+        
+        JLabel lcontador = new JLabel ("Contador de quantas imagens");
+        lcontador.setBounds (10, 50, 250, 25);
+        esquerdaPanel.add(lcontador);
+        
+        nome = new JTextField( );
+        nome.setBounds (10, 30, 100, 25);
+        esquerdaPanel.add(nome);
+        
+        contador = new JTextField( );
+        contador.setBounds (10, 70, 50, 25);
+        contador.setText("1");
+        esquerdaPanel.add(contador);
+        //FIM DA GAMBIARRA #################################################
         
         this.painelDesenho = new PainelDesenho();
         this.direitaPanel.add(painelDesenho, BorderLayout.CENTER);
