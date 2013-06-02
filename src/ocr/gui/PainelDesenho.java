@@ -46,7 +46,7 @@ public class PainelDesenho extends JPanel implements MouseListener, MouseMotionL
             for (double x = 0; x < TAMANHO_X; x++) {
                 if (pixels [(int)x + (int)y * TAMANHO_X]){
                     
-                    g.fillOval((int)x, (int)y,
+                    g.fillOval((int)x - 5, (int)y - 5,
                                10, 10);
                 }
             }
