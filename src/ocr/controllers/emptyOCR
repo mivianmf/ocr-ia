@@ -1,0 +1,120 @@
+/*
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package ocr.controllers;
+
+import com.googlecode.javacpp.Loader;
+import java.awt.color.ColorSpace;
+import java.awt.image.BufferedImage;
+import java.awt.image.ColorConvertOp;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.imageio.ImageIO;
+import javax.swing.JFrame;
+import ocr.entities.OCR;
+import ocr.gui.Janela;
+import ocr.interfaces.Drawer_Observable;
+import ocr.interfaces.Drawer_Observer;
+import static com.googlecode.javacv.cpp.opencv_core.*;
+import static com.googlecode.javacv.cpp.opencv_imgproc.*;
+import static com.googlecode.javacv.cpp.opencv_highgui.*;
+
+/**
+ * Controlador da classe OCR
+ *
+ * @author Bruno, Mívian e Washington
+ */
+public class OCR_Controller implements Drawer_Observer {
+
+    static Janela janela;
+    static OCR ocr;
+    //static BufferedImage imagem;
+    static IplImage imagem;
+
+    /**
+     * Método principal, controla todo o fluxo de dados
+     *
+     * @param args
+     */
+    public static void main(String[] args) {
+        //janela = new Janela();
+        //janela.setTitle("OCR");
+
+        imagem = abrirImagem("sorriso1.jpg");
+        ArrayList<CvRect> listaRetangulos = segmentar(imagem);
+        
+        
+    }
+
+    public static CvSeq getContornos(IplImage imgSrc) {
+        IplImage imgDst = cvCreateImage(cvSize(imgSrc.width(), imgSrc.height()),
+                IPL_DEPTH_8U, 1);
+        cvCopy(imgSrc, imgDst);
+        CvMemStorage m = cvCreateMemStorage(0);
+        CvSeq contornos = new CvSeq();
+        cvFindContours(imgDst, m, contornos, Loader.sizeof(CvContour.class),
+                CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE, cvPoint(0, 0));
+        return contornos;
+    }
+
+    public static ArrayList<CvRect> segmentar(IplImage cinza) {
+        ArrayList<CvRect> lista = new ArrayList<>();
+        CvSeq contornos = getContornos(cinza);
+        CvMemStorage m = cvCreateMemStorage(0);
+        CvSeq contourLow = cvApproxPoly(contornos,
+                Loader.sizeof(CvContour.class), m, CV_POLY_APPROX_DP, 1, 1);
+        CvFont font = new CvFont(CV_FONT_HERSHEY_PLAIN, 1, 1);
+        while (contourLow != null) {
+
+            // Elimina retangulos com largura maior que altura
+            // Pois padrao do numero e altura > que largura
+            CvRect retangulo = cvBoundingRect(contourLow, 0);
+            if (retangulo.width() >= retangulo.height()) {
+                contourLow = contourLow.h_next();
+                continue;
+            }
+
+            // Elimina retangulos com tamanho muito pequeno
+            // Pois estes provavelmente são ruidos
+            if (retangulo.width() <= 10 || retangulo.height() <= 10) {
+                contourLow = contourLow.h_next();
+                continue;
+            }
+
+            lista.add(retangulo);
+            contourLow = contourLow.h_next();
+        }
+        return lista;
+    }
+
+    public static BufferedImage paraCinza(BufferedImage img) {
+        ColorConvertOp colorConvert = new ColorConvertOp(
+                ColorSpace.getInstance(ColorSpace.CS_GRAY), null);
+        colorConvert.filter(img, img);
+        return img;
+    }
+
+    public static IplImage abrirImagem(String nomeArq) {
+        IplImage img = cvLoadImage(nomeArq);
+        return img;
+    }
+
+    private static void mostrarJanela() {
+        janela.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        janela.setSize(200, 200);//Define o tamanho
+        janela.setLocationRelativeTo(null);//Centraliza
+        janela.setTitle("OCR");//Define o título
+        janela.setVisible(true);//Faz ficar visível
+    }//end mostrarJanela
+
+    @Override
+    public void atualizar(Drawer_Observable observavel) {
+        //TODO: Trocar Image para awt.Image
+        //this.ocr.adicionarImagemAoTreino(((Janela)observavel).getImagem(),
+        //                                  ((Janela)observavel).getClasse());
+    }
+}

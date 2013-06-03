@@ -4,6 +4,7 @@
  */
 package ocr.entities;
 
+import java.awt.image.BufferedImage;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -29,7 +30,7 @@ import org.neuroph.util.TransferFunctionType;
 public class OCR implements LearningEventListener {
 
     private NeuralNetwork rede;
-    private Map<Image, Integer> treino;
+    private Map<BufferedImage, Integer> treino;
     private DataSet conjunto;
 
     //CONSTRUTORES
@@ -46,7 +47,7 @@ public class OCR implements LearningEventListener {
         this.conjunto = new DataSet(numPixels);
     }//end construtor
 
-    public OCR(NeuralNetwork rede, Map<Image, Integer> treino,
+    public OCR(NeuralNetwork rede, Map<BufferedImage, Integer> treino,
             Integer numPixels) {
         this.rede = rede;
         this.treino = treino;
@@ -81,7 +82,7 @@ public class OCR implements LearningEventListener {
      * @param imagem
      * @param classe
      */
-    public void adicionarImagemAoTreino(Image imagem, Integer classe) {
+    public void adicionarImagemAoTreino(BufferedImage imagem, Integer classe) {
         double[] entrada;//Entrada da rede
         double[] saidaEsperada;//Saída esperada
         FractionRgbData ajudante;//Ajudante para conversão para preto e branco
@@ -105,7 +106,7 @@ public class OCR implements LearningEventListener {
      * @param imagem
      * @param classe
      */
-    public void adicionarImagemAoTreino(Image imagem, Integer classe,
+    public void adicionarImagemAoTreino(BufferedImage imagem, Integer classe,
             String rotulo) {
         double[] entrada;//Entrada da rede
         double[] saidaEsperada;//Saída esperada
@@ -190,11 +191,11 @@ public class OCR implements LearningEventListener {
         this.rede = rede;
     }
 
-    public Map<Image, Integer> getTreino() {
+    public Map<BufferedImage, Integer> getTreino() {
         return treino;
     }
 
-    public void setTreino(Map<Image, Integer> treino) {
+    public void setTreino(Map<BufferedImage, Integer> treino) {
         this.treino = treino;
     }
 
