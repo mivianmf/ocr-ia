@@ -4,11 +4,12 @@
  */
 package ocr.entities;
 
-import java.awt.image.BufferedImage;
+import com.googlecode.javacv.cpp.opencv_core.IplImage;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import ocr.controllers.DimensionReducer;
 import org.neuroph.core.NeuralNetwork;
 import org.neuroph.core.events.LearningEvent;
 import org.neuroph.core.events.LearningEventListener;
@@ -30,25 +31,26 @@ import org.neuroph.util.TransferFunctionType;
 public class OCR implements LearningEventListener {
 
     private NeuralNetwork rede;
-    private Map<BufferedImage, Integer> treino;
+    private Map<IplImage, Integer> treino;
     private DataSet conjunto;
+    private DimensionReducer redutor;
 
     //CONSTRUTORES
-    public OCR() {        
-    }//end construtor
-    
-    public OCR(Integer numPixels) {
-        this.rede = new MultiLayerPerceptron(
-                TransferFunctionType.TANH,
-                numPixels,
-                numPixels + 1,
-                1);
-        this.treino = new HashMap<>();
-        this.conjunto = new DataSet(numPixels);
+    public OCR() {
     }//end construtor
 
-    public OCR(NeuralNetwork rede, Map<BufferedImage, Integer> treino,
-            Integer numPixels) {
+    public OCR(Integer quantValores) {
+        this.rede = new MultiLayerPerceptron(
+                TransferFunctionType.TANH,
+                quantValores,
+                quantValores + 1,
+                1);
+        this.treino = new HashMap<>();
+        this.conjunto = new DataSet(quantValores);
+    }//end construtor
+
+    public OCR(NeuralNetwork rede, Map<IplImage, Integer> treino,
+            Integer quantValores) {
         this.rede = rede;
         this.treino = treino;
     }//end construtor
@@ -58,77 +60,59 @@ public class OCR implements LearningEventListener {
      * Treina a rede neural
      */
     public void treinarRede() {
+        double[][] entradas = new double[this.treino.size()][this.conjunto.size()];
+        double[][] saidasEsperadas = new double[this.treino.size()][1];
+        Integer[] saidasTemp = new Integer[this.treino.size()];
+        IplImage[] imagensEntrada = new IplImage[this.treino.size()];
+        this.treino.values().toArray(saidasTemp);
+
+        //Redução de dimensionalidade
+        redutor = new DimensionReducer();
+
+        //Converte treino para vetor de IplImage e começa a redução
+        this.treino.keySet().toArray(imagensEntrada);
+        redutor.reduce(imagensEntrada, this.treino.size());
+
+        for (int i = 0; i < this.treino.size(); i++) {
+            entradas[i] = new double[this.conjunto.getInputSize()];
+            for (int j = 0; j < entradas[i].length; j++) {
+                entradas[i][j] = redutor.projectedTrainNumberMat.get(i, j);
+            }//end for
+
+            saidasEsperadas[i] = new double[1];
+            saidasEsperadas[i][0] = (double) saidasTemp[i].intValue();
+
+            //Adicionando no conjunto de treinamento
+            this.conjunto.addRow(entradas[i], saidasEsperadas[i]);
+        }//end for
+
         // enable batch if using MomentumBackpropagation
-        if( this.rede.getLearningRule() instanceof MomentumBackpropagation ) {
-            ((MomentumBackpropagation)this.rede.getLearningRule()).setBatchMode(true);
+        if (this.rede.getLearningRule() instanceof MomentumBackpropagation) {
+            ((MomentumBackpropagation) this.rede.getLearningRule()).setBatchMode(true);
             //((MomentumBackpropagation)this.rede.getLearningRule()).setLearningRate(0.1);
             //((MomentumBackpropagation)this.rede.getLearningRule()).setMaxError(0.001);
         }//end if
 
         LearningRule learningRule = this.rede.getLearningRule();
         learningRule.addListener(this);
-        
+
         //Realiza o aprendizado
         System.out.println("Treinando a rede...");
         this.rede.learn(this.conjunto, learningRule);
-        
-         //Testa os perceptrons
+
+        //Testa os perceptrons
         System.out.println("Testando a rede...");
         this.testarRede();
     }//end treinarRede
 
     /**
      * Adiciona uma imagem ao conjunto de treino
+     *
      * @param imagem
      * @param classe
      */
-    public void adicionarImagemAoTreino(BufferedImage imagem, Integer classe) {
-        double[] entrada;//Entrada da rede
-        double[] saidaEsperada;//Saída esperada
-        FractionRgbData ajudante;//Ajudante para conversão para preto e branco
-
+    public void adicionarImagemAoTreino(IplImage imagem, Integer classe) {
         this.treino.put(imagem, classe);//Adiciona a imagem no vetor de treino
-
-        ajudante = new FractionRgbData(imagem);
-
-        entrada = FractionRgbData.convertRgbInputToBinaryBlackAndWhite(
-                ajudante.getFlattenedRgbValues());
-
-        saidaEsperada = new double[1];
-        saidaEsperada[0] = (double) classe.intValue();
-
-        //Adicionando no conjunto de treinamento
-        this.conjunto.addRow(entrada, saidaEsperada);
-    }//end adicionarImagemAoTreino
-
-    /**
-     * Adiciona uma imagem rotulada ao conjunto de treino
-     * @param imagem
-     * @param classe
-     */
-    public void adicionarImagemAoTreino(BufferedImage imagem, Integer classe,
-            String rotulo) {
-        double[] entrada;//Entrada da rede
-        double[] saidaEsperada;//Saída esperada
-        DataSetRow dados;//Dados de entrada da rede
-        FractionRgbData ajudante;//Ajudante para conversão para preto e branco
-
-        this.treino.put(imagem, classe);//Adiciona a imagem no vetor de treino
-
-        ajudante = new FractionRgbData(imagem);
-
-        entrada = FractionRgbData.convertRgbInputToBinaryBlackAndWhite(
-                ajudante.getFlattenedRgbValues());
-
-        saidaEsperada = new double[1];
-        saidaEsperada[0] = (double) classe.intValue();
-
-        //Define os dados (pixels) e o rótulo
-        dados = new DataSetRow(entrada, saidaEsperada);
-        dados.setLabel(rotulo);
-
-        //Adicionando no conjunto de treinamento
-        this.conjunto.addRow(dados);
     }//end adicionarImagemAoTreino
 
     /**
@@ -160,16 +144,18 @@ public class OCR implements LearningEventListener {
      * @param imagem
      * @return
      */
-    public double reconhecer(Image imagem) {
-        double[] entrada;//Entrada da rede
-        double[] saidaObtida;//Saída obtida pela rede
-        FractionRgbData ajudante;//Ajudante para conversão para preto e branco
+    public double reconhecer(IplImage imagem) {
+        double[] entrada = new double[this.conjunto.getInputSize()];
+        double[] saidaObtida;
 
-        ajudante = new FractionRgbData(imagem);
+        //Redução de dimensionalidade        
+        //Converte treino para vetor de IplImage e começa a redução
+        float[] entradasTemp = redutor.recognize(imagem);
 
-        entrada = FractionRgbData.convertRgbInputToBinaryBlackAndWhite(
-                ajudante.getFlattenedRgbValues());
-
+        for (int i = 0; i < entradasTemp.length; i++) {
+            entrada[i] = (double) entradasTemp[i];
+        }//end fors
+        
         //Define uma nova entrada na rede neural
         this.rede.setInput(entrada);
 
@@ -191,39 +177,42 @@ public class OCR implements LearningEventListener {
         this.rede = rede;
     }
 
-    public Map<BufferedImage, Integer> getTreino() {
+    public Map<IplImage, Integer> getTreino() {
         return treino;
     }
 
-    public void setTreino(Map<BufferedImage, Integer> treino) {
+    public void setTreino(Map<IplImage, Integer> treino) {
         this.treino = treino;
     }
 
-     /**
-     * Prints network output for the each element from the specified training set.
+    /**
+     * Prints network output for the each element from the specified training
+     * set.
+     *
      * @param neuralNet neural network
      * @param trainingSet training set
      */
     public void testarRede() {
-        for(DataSetRow testSetRow : this.conjunto.getRows()) {
+        for (DataSetRow testSetRow : this.conjunto.getRows()) {
             this.rede.setInput(testSetRow.getInput());
             this.rede.calculate();
             double[] networkOutput = this.rede.getOutput();
 
-            System.out.print("Entrada: " + Arrays.toString( testSetRow.getInput() ) );
-            System.out.println(" Saída: " + Arrays.toString( networkOutput) );
+            System.out.print("Entrada: " + Arrays.toString(testSetRow.getInput()));
+            System.out.println(" Saída: " + Arrays.toString(networkOutput));
         }
     }
-    
+
     @Override
     public void handleLearningEvent(LearningEvent event) {
-        BackPropagation bp = (BackPropagation)event.getSource();
-        System.out.println(bp.getCurrentIteration() + ". iteração : "+
-                bp.getTotalNetworkError());
-    }   
+        BackPropagation bp = (BackPropagation) event.getSource();
+        System.out.println(bp.getCurrentIteration() + ". iteração : "
+                + bp.getTotalNetworkError());
+    }
 
     /**
      * Salva a rede neural treinada
+     *
      * @param nomeArquivo
      */
     public void salvarRede(String nomeArquivo) {
@@ -232,6 +221,7 @@ public class OCR implements LearningEventListener {
 
     /**
      * Carrega a rede neural salva
+     *
      * @param nomeArquivo
      */
     public void carregarRede(String nomeArquivo) {
