@@ -81,7 +81,7 @@ public class Janela extends JFrame implements Drawer_Observable, Drawer_Observer
         direitaPanel = new Panel();
         direitaPanel.setLayout(new BorderLayout());
         direitaPanel.setBounds(bounds.getSize().width / 2 + 5, 10,
-                bounds.getSize().width / 2 - 30, bounds.getSize().height - 45);
+                bounds.getSize().width / 2 - 20, bounds.getSize().height - 45);
         direitaPanel.setBackground(Color.blue);
         container.add(direitaPanel);
 
@@ -112,6 +112,7 @@ public class Janela extends JFrame implements Drawer_Observable, Drawer_Observer
         area.setLineWrap(true);
         area.setWrapStyleWord(true);
         area.setEditable(false);
+        area.setCaretPosition(area.getText().length());
 
         JScrollPane scroll = new JScrollPane(area);
         scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);

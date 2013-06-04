@@ -16,6 +16,8 @@ import java.awt.image.BufferedImage;
 import java.awt.image.ColorConvertOp;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 import ocr.entities.ImageTools;
 import ocr.entities.OCR;
@@ -74,9 +76,12 @@ public class OCR_Controller implements Drawer_Observer, NeuralNet_Observable,
         IplImage novaImagemTreino = cvCreateImage(cvSize(imagemDoPainel.getWidth(),
                 imagemDoPainel.getHeight()), IPL_DEPTH_8U, 1);
         novaImagemTreino.copyFrom(imagemDoPainel);
-
+        
+        novaImagemTreino = preprocessar(novaImagemTreino);
+        
         ArrayList<CvRect> retangulos = segmentar(novaImagemTreino);
 
+        //ImageTools.mostrarImagem(novaImagemTreino.getBufferedImage());
         //if (retangulos.size() == 1) {
         cvSetImageROI(novaImagemTreino, retangulos.get(0));//Define região de interesse
         imagemTreino = cvCreateImage(cvGetSize(novaImagemTreino),
@@ -89,7 +94,7 @@ public class OCR_Controller implements Drawer_Observer, NeuralNet_Observable,
         cvResize(imagemTreino, imagemTreinoRedimensionada, CV_INTER_CUBIC);//Redimensiona
         this.ocr.adicionarImagemAoTreino(imagemTreinoRedimensionada, classe);//Adiciona ao treinamento
 
-        ImageTools.mostrarImagem(imagemTreinoRedimensionada.getBufferedImage());
+        //ImageTools.mostrarImagem(imagemTreinoRedimensionada.getBufferedImage());
         if (classe == 1) {
             this.janela.incrementarContadorNumero();
         } else {
@@ -110,6 +115,8 @@ public class OCR_Controller implements Drawer_Observer, NeuralNet_Observable,
                 imagemDoPainel.getHeight()), IPL_DEPTH_8U, 1);
         novaImagemTeste.copyFrom(imagemDoPainel);
 
+        novaImagemTeste = preprocessar(novaImagemTeste);
+        
         ArrayList<CvRect> retangulos = segmentar(novaImagemTeste);
 
         //if (retangulos.size() == 1) {
@@ -123,7 +130,7 @@ public class OCR_Controller implements Drawer_Observer, NeuralNet_Observable,
                 imagemTeste.depth(), imagemTeste.nChannels());//Cria a imagem para redimensionamento
         cvResize(imagemTeste, imagemTesteRedimensionada, CV_INTER_CUBIC);//Redimensiona
         Integer classe = (int) this.ocr.reconhecer(imagemTesteRedimensionada);
-        ImageTools.mostrarImagem(imagemTesteRedimensionada.getBufferedImage());
+        //ImageTools.mostrarImagem(imagemTesteRedimensionada.getBufferedImage());
         if (classe == 1) {
             JOptionPane.showConfirmDialog(null, "A imagem é um número!", "Resultado",
                     JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE);
@@ -139,7 +146,7 @@ public class OCR_Controller implements Drawer_Observer, NeuralNet_Observable,
         IplImage temp = cvCreateImage(cvSize(imagem.width(), imagem.height()),
                 IPL_DEPTH_8U, 1);
         opencv_imgproc.IplConvKernel element = new opencv_imgproc.IplConvKernel();
-        IplImage cinza = ImageTools.converterImgEscalaCinza(imagem);
+        IplImage cinza = imagem;//ImageTools.converterImgEscalaCinza(imagem);
         cinza = ImageTools.filtroSmooth(cinza);
         cinza = ImageTools.limiarizar(cinza);
         cvMorphologyEx(cinza, cinza, temp, element, CV_MOP_OPEN, 2);

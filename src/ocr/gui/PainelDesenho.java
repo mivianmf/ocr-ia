@@ -12,6 +12,7 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferedImage;
 import javax.swing.JPanel;
+import ocr.entities.ImageTools;
 import ocr.interfaces.ControleDesenhoObservador;
 import ocr.interfaces.ImagemGetter;
 
@@ -58,11 +59,7 @@ public class PainelDesenho extends JPanel implements MouseListener, MouseMotionL
             this.TAMANHO_X = this.getWidth();
             this.TAMANHO_Y = this.getHeight();
             this.pixels = new boolean[getWidth() * getHeight()];
-            
-            for (int i=0; i < pixels.length; i++){
-                pixels[i] = false;
-            }
-            
+                        
         }
         Graphics2D g2 = (Graphics2D) g;
         g2.setColor(Color.white);
@@ -75,7 +72,7 @@ public class PainelDesenho extends JPanel implements MouseListener, MouseMotionL
         int width = this.TAMANHO_X;
         int height = this.TAMANHO_Y;
         
-        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_USHORT_GRAY);
         Graphics2D graphics = image.createGraphics();
         this.paint(graphics);
         
