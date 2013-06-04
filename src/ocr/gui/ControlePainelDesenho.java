@@ -9,93 +9,124 @@ import java.awt.Panel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.awt.image.RenderedImage;
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.imageio.ImageIO;
 import javax.swing.JButton;
-import ocr.controllers.ControleDesenhoObservador;
-import ocr.controllers.ImagemGetter;
+import ocr.interfaces.ControleDesenhoObservador;
+import ocr.interfaces.Drawer_Observable;
+import ocr.interfaces.Drawer_Observer;
+import ocr.interfaces.ImagemGetter;
 
 /**
  *
  * @author Rubico
  */
-public class ControlePainelDesenho extends Panel{
-   private JButton salvar;
-   private JButton limpar;
-   private JButton adicionarTreinamento;
-   
-   private ImagemGetter imageGetter = null;
-   private ArrayList<ControleDesenhoObservador> observadores = new ArrayList<>();
-   //private ArrayList<ImagesContainer> containers = new ArrayList<>();
-   
-   
-   public ControlePainelDesenho ( ){       
-       
-       this.setLayout (new BorderLayout ( ));
-       
-       this.salvar = new JButton ("Salvar Imagem");
-       salvar.addActionListener (new BotaoSalvarAcao());
-       salvar.setMnemonic(KeyEvent.VK_ENTER);
-       
-       this.limpar = new JButton ("Limpar");
-       limpar.addActionListener(new BotaoLimparObservador());
-       
-       this.adicionarTreinamento = new JButton ("Adicionar Treinamento");
-       
-       this.add(adicionarTreinamento, BorderLayout.WEST);
-       this.add(salvar, BorderLayout.CENTER);
-       this.add(limpar, BorderLayout.EAST);
-   }
-   
-   public void setImagemGetter(ImagemGetter imageGetter) {
+public class ControlePainelDesenho extends Panel implements Drawer_Observable {
+    
+    private JButton salvar;
+    private JButton limpar;
+    private JButton treinarRede;
+    private JButton reconhecer;
+    private JButton adicionarTreinamento;
+    private ImagemGetter imageGetter = null;
+    private ArrayList<Drawer_Observer> observadores = new ArrayList<>();
+    private ArrayList<ControleDesenhoObservador> paineisObservadores = new ArrayList<>();
+    boolean treinar;
+
+    public ControlePainelDesenho() {
+        this.setLayout(new BorderLayout());
+
+        this.salvar = new JButton("Salvar Imagem");
+        this.salvar.addActionListener(new BotaoSalvarAcao());
+        this.salvar.setMnemonic(KeyEvent.VK_ENTER);
+
+        this.limpar = new JButton("Limpar");
+        this.limpar.addActionListener(new BotaoLimparObservador());
+
+        this.treinarRede = new JButton("Treinar Rede");
+        this.treinarRede.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                treinar = true;
+                notificar();
+                treinar = false;
+            }
+        });
+
+        this.reconhecer = new JButton("Reconhecer");
+        //this.limpar.addActionListener(new BotaoLimparObservador());
+
+        this.adicionarTreinamento = new JButton("Adicionar");
+        this.adicionarTreinamento.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                imageGetter.getImagem();
+                notificar();
+            }
+        });
+
+        this.add(adicionarTreinamento, BorderLayout.LINE_START);
+        this.add(limpar, BorderLayout.LINE_END);
+        this.add(salvar, BorderLayout.CENTER);
+        this.add(treinarRede, BorderLayout.AFTER_LAST_LINE);
+        this.add(reconhecer, BorderLayout.BEFORE_FIRST_LINE);
+    }
+
+    public void setImagemGetter(ImagemGetter imageGetter) {
         this.imageGetter = imageGetter;
-   }
-   
-   public void addControleDesenhoObservador(ControleDesenhoObservador observer) {
-        observadores.add(observer);
-   }
+    }
 
-   public void removeControleDesenhoObservador(ControleDesenhoObservador observer) {
-        observadores.remove(observer);
-   }
-   
-   class BotaoSalvarAcao implements ActionListener{
-       @Override
-       public void actionPerformed (ActionEvent e){
-           String nome = (Janela.nome.getText());
-           int cont = Integer.parseInt (Janela.contador.getText());
-           
-           if (imageGetter != null){
-               try {
-                   
-                   ImageIO.write((RenderedImage)imageGetter.getImagem(), 
-                           "PNG", new File("src\\ocr\\images\\"+nome+"_"+cont+".PNG"));
-                   cont ++;
-                   Janela.contador.setText(""+cont);
-                   
-                   for (ControleDesenhoObservador o : observadores){
-                       o.limpar();
-                   }
-               } catch (IOException ex) {
-                   Logger.getLogger(ControlePainelDesenho.class.getName()).log(Level.SEVERE, null, ex);
-               }
-           }
-       }
-   }
-   
-   class BotaoLimparObservador implements ActionListener {
+    @Override
+    public void adicionarObservador(Drawer_Observer observador) {
+        this.observadores.add(observador);
+    }
 
-       @Override
+    public void adicionarPainelObservador(ControleDesenhoObservador observador) {
+        this.paineisObservadores.add(observador);
+    }
+
+    @Override
+    public void removerObservador(Drawer_Observer observador) {
+        this.observadores.remove(observador);
+    }
+
+    @Override
+    public void notificar() {
+        for (Drawer_Observer drawer_Observer : observadores) {
+            drawer_Observer.atualizar(this);
+        }//end for
+    }
+
+    class BotaoSalvarAcao implements ActionListener {
+
+        @Override
         public void actionPerformed(ActionEvent e) {
-            if (imageGetter != null) {
-                for (ControleDesenhoObservador o : observadores) {
-                    o.limpar();
-                }
+            //NO ACTION
+            /*String nome = (Janela.nome.getText());
+             int cont = Integer.parseInt(Janela.contadorNumero.getText());
+
+             if (imageGetter != null) {
+             try {
+
+             ImageIO.write((RenderedImage) imageGetter.getImagem(),
+             "PNG", new File("src\\ocr\\images\\" + nome + "_" + cont + ".PNG"));
+             cont++;
+             Janela.contadorNumero.setText("" + cont);
+
+             for (ControleDesenhoObservador o : paineisObservadores) {
+             o.limpar();
+             }
+             } catch (IOException ex) {
+             Logger.getLogger(ControlePainelDesenho.class.getName()).log(Level.SEVERE, null, ex);
+             }*/
+        }
+    }
+
+    class BotaoLimparObservador implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            for (ControleDesenhoObservador o : paineisObservadores) {
+                o.limpar();
             }
         }
     }

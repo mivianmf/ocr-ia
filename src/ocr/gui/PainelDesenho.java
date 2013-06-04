@@ -12,8 +12,8 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferedImage;
 import javax.swing.JPanel;
-import ocr.controllers.ControleDesenhoObservador;
-import ocr.controllers.ImagemGetter;
+import ocr.interfaces.ControleDesenhoObservador;
+import ocr.interfaces.ImagemGetter;
 
 /**
  *
@@ -24,7 +24,6 @@ public class PainelDesenho extends JPanel implements MouseListener, MouseMotionL
     private boolean[] pixels;
     private int TAMANHO_X;
     private int TAMANHO_Y;
-    
 
     public PainelDesenho() {
         this.initComponents();
@@ -76,13 +75,14 @@ public class PainelDesenho extends JPanel implements MouseListener, MouseMotionL
         int width = this.TAMANHO_X;
         int height = this.TAMANHO_Y;
         
-        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_USHORT_GRAY);
         Graphics2D graphics = image.createGraphics();
         this.paint(graphics);
         
         return image;
     }
     
+    @Override
     public void limpar(){
         for (int i=0; i < pixels.length; i++){
             pixels[i] = false;
@@ -130,4 +130,5 @@ public class PainelDesenho extends JPanel implements MouseListener, MouseMotionL
     @Override
     public void mouseMoved(MouseEvent e) {
     }
+
 }

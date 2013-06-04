@@ -5,18 +5,20 @@
 package ocr.entities;
 
 import com.googlecode.javacv.cpp.opencv_core.IplImage;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import ocr.controllers.DimensionReducer;
+import ocr.interfaces.NeuralNet_Observable;
+import ocr.interfaces.NeuralNet_Observer;
 import org.neuroph.core.NeuralNetwork;
 import org.neuroph.core.events.LearningEvent;
 import org.neuroph.core.events.LearningEventListener;
 import org.neuroph.core.learning.DataSet;
 import org.neuroph.core.learning.DataSetRow;
 import org.neuroph.core.learning.LearningRule;
-import org.neuroph.imgrec.FractionRgbData;
 import org.neuroph.imgrec.image.Image;
 import org.neuroph.nnet.MultiLayerPerceptron;
 import org.neuroph.nnet.learning.BackPropagation;
@@ -28,25 +30,20 @@ import org.neuroph.util.TransferFunctionType;
  *
  * @author Bruno, Mívian e Washington
  */
-public class OCR implements LearningEventListener {
+public class OCR implements LearningEventListener, NeuralNet_Observable {
 
     private NeuralNetwork rede;
     private Map<IplImage, Integer> treino;
     private DataSet conjunto;
     private DimensionReducer redutor;
+    private TransferFunctionType funcaoAtivacao;
+    public ArrayList<NeuralNet_Observer> observadores;
+    private String estadoAtual;
 
     //CONSTRUTORES
-    public OCR() {
-    }//end construtor
-
-    public OCR(Integer quantValores) {
-        this.rede = new MultiLayerPerceptron(
-                TransferFunctionType.TANH,
-                quantValores,
-                quantValores + 1,
-                1);
+    public OCR(TransferFunctionType funcaoAtivacao) {
+        this.funcaoAtivacao = funcaoAtivacao;
         this.treino = new HashMap<>();
-        this.conjunto = new DataSet(quantValores);
     }//end construtor
 
     public OCR(NeuralNetwork rede, Map<IplImage, Integer> treino,
@@ -72,7 +69,14 @@ public class OCR implements LearningEventListener {
         //Converte treino para vetor de IplImage e começa a redução
         this.treino.keySet().toArray(imagensEntrada);
         redutor.reduce(imagensEntrada, this.treino.size());
-
+        
+        this.conjunto = new DataSet(this.treino.size() - 1, 1);
+        this.rede = new MultiLayerPerceptron(
+                this.funcaoAtivacao,
+                this.conjunto.getInputSize(),
+                this.conjunto.getInputSize() + 1,
+                1);
+        
         for (int i = 0; i < this.treino.size(); i++) {
             entradas[i] = new double[this.conjunto.getInputSize()];
             for (int j = 0; j < entradas[i].length; j++) {
@@ -90,7 +94,8 @@ public class OCR implements LearningEventListener {
         if (this.rede.getLearningRule() instanceof MomentumBackpropagation) {
             ((MomentumBackpropagation) this.rede.getLearningRule()).setBatchMode(true);
             //((MomentumBackpropagation)this.rede.getLearningRule()).setLearningRate(0.1);
-            //((MomentumBackpropagation)this.rede.getLearningRule()).setMaxError(0.001);
+            ((MomentumBackpropagation)this.rede.getLearningRule()).setMaxError(0.01);
+            ((MomentumBackpropagation)this.rede.getLearningRule()).setMaxIterations(10000);
         }//end if
 
         LearningRule learningRule = this.rede.getLearningRule();
@@ -198,16 +203,18 @@ public class OCR implements LearningEventListener {
             this.rede.calculate();
             double[] networkOutput = this.rede.getOutput();
 
-            System.out.print("Entrada: " + Arrays.toString(testSetRow.getInput()));
-            System.out.println(" Saída: " + Arrays.toString(networkOutput));
+            System.out.print("Saída Esperada: " + testSetRow.getDesiredOutput()[0]);//Arrays.toString(testSetRow.getInput()));
+            System.out.print(" Saída: " + Arrays.toString(networkOutput));
+            System.out.println(" Arredondada: " + Math.round(networkOutput[0]));
         }
     }
 
     @Override
     public void handleLearningEvent(LearningEvent event) {
         BackPropagation bp = (BackPropagation) event.getSource();
-        System.out.println(bp.getCurrentIteration() + ". iteração : "
+        estadoAtual += (bp.getCurrentIteration() + ". iteração : "
                 + bp.getTotalNetworkError());
+        notificar();
     }
 
     /**
@@ -226,5 +233,26 @@ public class OCR implements LearningEventListener {
      */
     public void carregarRede(String nomeArquivo) {
         this.rede = MultiLayerPerceptron.load(nomeArquivo);
+    }
+
+    public String getEstadoAtual() {
+        return estadoAtual;
+    }
+    
+    @Override
+    public void adicionarObservador(NeuralNet_Observer observador) {
+        this.observadores.add(observador);
+    }
+
+    @Override
+    public void removerObservador(NeuralNet_Observer observador) {
+        this.observadores.remove(observador);
+    }
+
+    @Override
+    public void notificar() {
+        for (NeuralNet_Observer neuralNet_Observer : observadores) {
+            neuralNet_Observer.atualizar(this);
+        }
     }
 }//end class
