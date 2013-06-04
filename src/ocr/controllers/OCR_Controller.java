@@ -96,9 +96,9 @@ public class OCR_Controller implements Drawer_Observer, NeuralNet_Observable,
 
         //ImageTools.mostrarImagem(imagemTreinoRedimensionada.getBufferedImage());
         if (classe == 1) {
-            this.janela.incrementarContadorNumero();
+            this.janela.incrementarContadorClasse1();
         } else {
-            this.janela.incrementarContadorNaoNumero();
+            this.janela.incrementarContadorClasse2();
         }
         this.quantTreino++;//Incrementa a quantidade de imagens
         JOptionPane.showConfirmDialog(null, "Adicionada com sucesso!", "Adição",
@@ -132,11 +132,11 @@ public class OCR_Controller implements Drawer_Observer, NeuralNet_Observable,
         Integer classe = (int) this.ocr.reconhecer(imagemTesteRedimensionada);
         //ImageTools.mostrarImagem(imagemTesteRedimensionada.getBufferedImage());
         if (classe == 1) {
-            JOptionPane.showConfirmDialog(null, "A imagem é um número!", "Resultado",
+            JOptionPane.showConfirmDialog(null, "A imagem pertence à classe 1!", "Resultado",
                     JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE);
         }//end if
         else {
-            JOptionPane.showConfirmDialog(null, "A imagem não é um número!", "Resultado",
+            JOptionPane.showConfirmDialog(null, "A imagem pertence à classe 2!", "Resultado",
                     JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE);
         }//end else
         this.janela.limpar();

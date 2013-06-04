@@ -40,8 +40,8 @@ public class Janela extends JFrame implements Drawer_Observable, Drawer_Observer
         BotaoTreinar_Observable, BotaoTreinar_Observer {
 
     private JTextField nome;
-    private JTextField contadorNumero;
-    private JTextField contadorNaoNumero;
+    private JTextField contadorClasse1;
+    private JTextField contadorClasse2;
     private ArrayList<Drawer_Observer> observadores = new ArrayList<>();
     private ArrayList<BotaoReconhecer_Observer> observadoresReconhecer = new ArrayList<>();
     private ArrayList<BotaoTreinar_Observer> observadoresTreinar = new ArrayList<>();
@@ -50,8 +50,8 @@ public class Janela extends JFrame implements Drawer_Observable, Drawer_Observer
     private Container container;
     private Panel esquerdaPanel, direitaPanel;
     private Integer classe;
-    private JRadioButton numero;
-    private JRadioButton naoNumero;
+    private JRadioButton classe1;
+    private JRadioButton classe2;
     private ButtonGroup grupo;
     private JTextArea area;
     private BufferedImage imagem;
@@ -96,17 +96,17 @@ public class Janela extends JFrame implements Drawer_Observable, Drawer_Observer
         lcontador.setBounds(10, 55, 250, 25);
         esquerdaPanel.add(lcontador);
 
-        JLabel lcontadorNum = new JLabel("Número");
+        JLabel lcontadorNum = new JLabel("Classe 1");
         lcontadorNum.setBounds(30, 70, 60, 25);
         esquerdaPanel.add(lcontadorNum);
 
-        JLabel lcontadorNaoNum = new JLabel("Não-número");
+        JLabel lcontadorNaoNum = new JLabel("Classe 2");
         lcontadorNaoNum.setBounds(100, 70, 100, 25);
         esquerdaPanel.add(lcontadorNaoNum);
 
         grupo = new ButtonGroup();
-        numero = new JRadioButton("Número");
-        naoNumero = new JRadioButton("Não-número");
+        classe1 = new JRadioButton("Classe 1");
+        classe2 = new JRadioButton("Classe 2");
         area = new JTextArea("Feedback");
         area.setBounds(10, 130, bounds.getSize().width / 2 - 25, 400);
         area.setLineWrap(true);
@@ -120,29 +120,29 @@ public class Janela extends JFrame implements Drawer_Observable, Drawer_Observer
 
         this.add(scroll);
 
-        numero.setBounds(10, 30, 100, 25);
-        numero.setBackground(Color.red);
-        numero.setSelected(true);
-        naoNumero.setBounds(120, 30, 100, 25);
-        naoNumero.setBackground(Color.red);
-        grupo.add(numero);
-        grupo.add(naoNumero);
+        classe1.setBounds(10, 30, 100, 25);
+        classe1.setBackground(Color.red);
+        classe1.setSelected(true);
+        classe2.setBounds(120, 30, 100, 25);
+        classe2.setBackground(Color.red);
+        grupo.add(classe1);
+        grupo.add(classe2);
 
-        esquerdaPanel.add(numero);
-        esquerdaPanel.add(naoNumero);
+        esquerdaPanel.add(classe1);
+        esquerdaPanel.add(classe2);
         esquerdaPanel.add(area);
 
-        contadorNumero = new JTextField();
-        contadorNumero.setBounds(37, 92, 30, 25);
-        contadorNumero.setText("0");
-        contadorNumero.setEditable(false);
-        esquerdaPanel.add(contadorNumero);
+        contadorClasse1 = new JTextField();
+        contadorClasse1.setBounds(37, 92, 30, 25);
+        contadorClasse1.setText("0");
+        contadorClasse1.setEditable(false);
+        esquerdaPanel.add(contadorClasse1);
 
-        contadorNaoNumero = new JTextField();
-        contadorNaoNumero.setBounds(118, 92, 30, 25);
-        contadorNaoNumero.setText("0");
-        contadorNaoNumero.setEditable(false);
-        esquerdaPanel.add(contadorNaoNumero);
+        contadorClasse2 = new JTextField();
+        contadorClasse2.setBounds(118, 92, 30, 25);
+        contadorClasse2.setText("0");
+        contadorClasse2.setEditable(false);
+        esquerdaPanel.add(contadorClasse2);
 
         this.painelDesenho = new PainelDesenho();
         this.direitaPanel.add(painelDesenho, BorderLayout.CENTER);
@@ -185,12 +185,12 @@ public class Janela extends JFrame implements Drawer_Observable, Drawer_Observer
         return this.classe;
     }
 
-    public void incrementarContadorNumero() {
-        this.contadorNumero.setText("" + (Integer.parseInt(this.contadorNumero.getText()) + 1));
+    public void incrementarContadorClasse1() {
+        this.contadorClasse1.setText("" + (Integer.parseInt(this.contadorClasse1.getText()) + 1));
     }
 
-    public void incrementarContadorNaoNumero() {
-        this.contadorNaoNumero.setText("" + (Integer.parseInt(this.contadorNaoNumero.getText()) + 1));
+    public void incrementarContadorClasse2() {
+        this.contadorClasse2.setText("" + (Integer.parseInt(this.contadorClasse2.getText()) + 1));
     }
 
     @Override
@@ -214,7 +214,7 @@ public class Janela extends JFrame implements Drawer_Observable, Drawer_Observer
     public void atualizar(Drawer_Observable observavel) {
         if (observavel instanceof ControlePainelDesenho) {
             this.imagem = this.painelDesenho.getImagem();
-            if (this.numero.isSelected()) {//Se classe é número então 1, senão 0
+            if (this.classe1.isSelected()) {//Se classe é número então 1, senão 0
                 this.classe = 1;
             } else {
                 this.classe = -1;
