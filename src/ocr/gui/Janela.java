@@ -18,9 +18,14 @@ import javax.swing.ButtonGroup;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import ocr.entities.OCR;
+import ocr.interfaces.BotaoReconhecer_Observable;
+import ocr.interfaces.BotaoReconhecer_Observer;
+import ocr.interfaces.BotaoTreinar_Observable;
+import ocr.interfaces.BotaoTreinar_Observer;
 import ocr.interfaces.Drawer_Observable;
 import ocr.interfaces.Drawer_Observer;
 import ocr.interfaces.NeuralNet_Observable;
@@ -31,12 +36,15 @@ import ocr.interfaces.NeuralNet_Observer;
  * @author 407456
  */
 public class Janela extends JFrame implements Drawer_Observable, Drawer_Observer,
-        NeuralNet_Observer {
+        NeuralNet_Observer, BotaoReconhecer_Observable, BotaoReconhecer_Observer,
+        BotaoTreinar_Observable, BotaoTreinar_Observer {
 
     private JTextField nome;
     private JTextField contadorNumero;
     private JTextField contadorNaoNumero;
     private ArrayList<Drawer_Observer> observadores = new ArrayList<>();
+    private ArrayList<BotaoReconhecer_Observer> observadoresReconhecer = new ArrayList<>();
+    private ArrayList<BotaoTreinar_Observer> observadoresTreinar = new ArrayList<>();
     private PainelDesenho painelDesenho;
     private ControlePainelDesenho controlePainelDesenho;
     private Container container;
@@ -72,7 +80,8 @@ public class Janela extends JFrame implements Drawer_Observable, Drawer_Observer
 
         direitaPanel = new Panel();
         direitaPanel.setLayout(new BorderLayout());
-        direitaPanel.setBounds(bounds.getSize().width / 2, 0, bounds.getSize().width / 2 - 16, bounds.getSize().height - 38);
+        direitaPanel.setBounds(bounds.getSize().width / 2 + 5, 10,
+                bounds.getSize().width / 2 - 30, bounds.getSize().height - 45);
         direitaPanel.setBackground(Color.blue);
         container.add(direitaPanel);
 
@@ -98,9 +107,17 @@ public class Janela extends JFrame implements Drawer_Observable, Drawer_Observer
         grupo = new ButtonGroup();
         numero = new JRadioButton("Número");
         naoNumero = new JRadioButton("Não-número");
-        area = new JTextArea();
+        area = new JTextArea("Feedback");
         area.setBounds(10, 130, bounds.getSize().width / 2 - 25, 400);
+        area.setLineWrap(true);
+        area.setWrapStyleWord(true);
         area.setEditable(false);
+
+        JScrollPane scroll = new JScrollPane(area);
+        scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+        scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+
+        this.add(scroll);
 
         numero.setBounds(10, 30, 100, 25);
         numero.setBackground(Color.red);
@@ -129,9 +146,12 @@ public class Janela extends JFrame implements Drawer_Observable, Drawer_Observer
         this.painelDesenho = new PainelDesenho();
         this.direitaPanel.add(painelDesenho, BorderLayout.CENTER);
 
+        //Adicionando os observadores
         this.controlePainelDesenho = new ControlePainelDesenho();
         this.controlePainelDesenho.adicionarObservador(this);
         this.controlePainelDesenho.adicionarPainelObservador(this.painelDesenho);
+        this.controlePainelDesenho.adicionarObservadorReconhecer(this);
+        this.controlePainelDesenho.adicionarObservadorTreinar(this);
         this.controlePainelDesenho.setImagemGetter(painelDesenho);
 
         this.direitaPanel.add(controlePainelDesenho, BorderLayout.SOUTH);
@@ -183,7 +203,7 @@ public class Janela extends JFrame implements Drawer_Observable, Drawer_Observer
     }
 
     @Override
-    public void notificar() {
+    public void notificarDesenho() {
         for (Drawer_Observer drawer_Observer : observadores) {
             drawer_Observer.atualizar(this);
         }
@@ -192,17 +212,13 @@ public class Janela extends JFrame implements Drawer_Observable, Drawer_Observer
     @Override
     public void atualizar(Drawer_Observable observavel) {
         if (observavel instanceof ControlePainelDesenho) {
-            if (this.controlePainelDesenho.treinar) {
-                
+            this.imagem = this.painelDesenho.getImagem();
+            if (this.numero.isSelected()) {//Se classe é número então 1, senão 0
+                this.classe = 1;
             } else {
-                this.imagem = this.painelDesenho.getImagem();
-                if (this.numero.isSelected()) {//Se classe é número então 1, senão 0
-                    this.classe = 1;
-                } else {
-                    this.classe = 0;
-                }//end else
-            }
-            notificar();
+                this.classe = -1;
+            }//end else
+            notificarDesenho();
         }//end if
     }
 
@@ -210,5 +226,50 @@ public class Janela extends JFrame implements Drawer_Observable, Drawer_Observer
     public void atualizar(NeuralNet_Observable observavel) {
         this.area.setText(((OCR) observavel).getEstadoAtual());
         //repaint();
+    }
+
+    @Override
+    public void adicionarObservadorReconhecer(BotaoReconhecer_Observer observador) {
+        this.observadoresReconhecer.add(observador);
+    }
+
+    @Override
+    public void removerObservadorReconhecer(BotaoReconhecer_Observer observador) {
+        this.observadoresReconhecer.remove(observador);
+    }
+
+    @Override
+    public void adicionarObservadorTreinar(BotaoTreinar_Observer observador) {
+        this.observadoresTreinar.add(observador);
+    }
+
+    @Override
+    public void removerObservadorTreinar(BotaoTreinar_Observer observador) {
+        this.observadoresTreinar.remove(observador);
+    }
+
+    @Override
+    public void notificarReconhecer() {
+        for (BotaoReconhecer_Observer observador : observadoresReconhecer) {
+            observador.atualizar(this);
+        }
+    }
+
+    @Override
+    public void notificarTreinar() {
+        for (BotaoTreinar_Observer observador : observadoresTreinar) {
+            observador.atualizar(this);
+        }
+    }
+
+    @Override
+    public void atualizar(BotaoReconhecer_Observable observavel) {
+        this.imagem = this.painelDesenho.getImagem();
+        notificarReconhecer();
+    }
+
+    @Override
+    public void atualizar(BotaoTreinar_Observable observavel) {
+        notificarTreinar();
     }
 }

@@ -75,7 +75,7 @@ public class PainelDesenho extends JPanel implements MouseListener, MouseMotionL
         int width = this.TAMANHO_X;
         int height = this.TAMANHO_Y;
         
-        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_USHORT_GRAY);
+        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         Graphics2D graphics = image.createGraphics();
         this.paint(graphics);
         

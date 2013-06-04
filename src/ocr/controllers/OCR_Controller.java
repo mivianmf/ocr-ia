@@ -20,6 +20,10 @@ import javax.swing.JOptionPane;
 import ocr.entities.ImageTools;
 import ocr.entities.OCR;
 import ocr.gui.Janela;
+import ocr.interfaces.BotaoReconhecer_Observable;
+import ocr.interfaces.BotaoReconhecer_Observer;
+import ocr.interfaces.BotaoTreinar_Observable;
+import ocr.interfaces.BotaoTreinar_Observer;
 import ocr.interfaces.Drawer_Observable;
 import ocr.interfaces.Drawer_Observer;
 import ocr.interfaces.NeuralNet_Observable;
@@ -32,103 +36,28 @@ import org.neuroph.util.TransferFunctionType;
  * @author Bruno, Mívian e Washington
  */
 public class OCR_Controller implements Drawer_Observer, NeuralNet_Observable,
-        NeuralNet_Observer {
+        NeuralNet_Observer, BotaoReconhecer_Observer, BotaoTreinar_Observer {
 
     public static final int SIZE_X_NUMBERS = 50;
     public static final int SIZE_Y_NUMBERS = 75;
     private Janela janela;
     private OCR ocr;
-    private IplImage imagemTreino, imagemTreinoRedimensionada;
+    private IplImage imagemTreino, imagemTreinoRedimensionada,
+            imagemTeste, imagemTesteRedimensionada;
     private int quantTreino;
-    public ArrayList<NeuralNet_Observer> observadores;
+    public ArrayList<NeuralNet_Observer> observadores = new ArrayList<>();
 
     public OCR_Controller() {
         this.janela = new Janela();
-        this.ocr = new OCR(TransferFunctionType.SIGMOID);
-        janela.setTitle("OCR");
-        janela.adicionarObservador(this);
-    }
+        this.ocr = new OCR(TransferFunctionType.TANH);
+        this.janela.setTitle("OCR");
 
-    public void rodar() {
-        //System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
-        /*quantTreino = 3;
-         quantClasses = 2;
-         //imagem = Highgui.imread("sorriso1.jpg");
-         imagensTreino = new IplImage[quantTreino];
-         imagensTreinoRedimensionadas = new IplImage[quantTreino];
-
-         ocr = new OCR(quantTreino * quantClasses - 1);
-
-         for (int i = 0; i < quantClasses; i++) {
-         for (int j = 0; j < quantTreino; j++) {
-         String nomeArquivo = "src/ocr/images/" + (i + 1) + "_" + (j + 1) + ".png"; 
-         imagemIpl = ImageTools.abrirImagem(nomeArquivo);
-
-         imagemIpl = ImageTools.converterImgEscalaCinza(imagemIpl);
-
-         ArrayList<CvRect> retangulos = segmentar(imagemIpl);
-
-         if (retangulos.get(0).height() != 0 && retangulos.get(0).width() != 0) {
-         //imagemIpl.copyTo(imagem, 0, false, retanguloAtual);
-         //cvSetImageROI(imagemIpl, retangulos.get(i));
-         cvSetImageROI(imagemIpl, retangulos.get(0));
-         imagensTreino[j] = cvCreateImage(cvGetSize(imagemIpl), imagemIpl.depth(), imagemIpl.nChannels());
-         cvCopy(imagemIpl, imagensTreino[j]);
-         cvResetImageROI(imagemIpl);
-         imagensTreinoRedimensionadas[j] = IplImage.create(50, 75, imagensTreino[j].depth(), imagensTreino[j].nChannels());
-         cvResize(imagensTreino[j], imagensTreinoRedimensionadas[j], CV_INTER_AREA);
-
-         ocr.adicionarImagemAoTreino(imagensTreinoRedimensionadas[j], i - 1);
-                    
-         cvSaveImage(nomeArquivo, imagensTreinoRedimensionadas[j]);
-         //imagem = resizedImage.getBufferedImage();
-         //ImageTools.mostrarImagem(imagem);
-         }//end if
-         }//end for  
-         }//end for
-         ocr.treinarRede();
-
-         //Reconhecer
-         imagemIpl = ImageTools.abrirImagem("src/ocr/images/1_3.png");//TODO: Trocar imagem a ser reconhecida
-
-         imagemIpl = ImageTools.converterImgEscalaCinza(imagemIpl);
-
-         ArrayList<CvRect> retangulos = segmentar(imagemIpl);
-
-         if (retangulos.get(0).height() != 0 && retangulos.get(0).width() != 0) {
-         //imagemIpl.copyTo(imagem, 0, false, retanguloAtual);
-         //cvSetImageROI(imagemIpl, retangulos.get(i));
-         cvSetImageROI(imagemIpl, retangulos.get(0));
-         imagemTeste = cvCreateImage(cvGetSize(imagemIpl), imagemIpl.depth(), imagemIpl.nChannels());
-         cvCopy(imagemIpl, imagemTeste);
-         cvResetImageROI(imagemIpl);
-         imagemTesteRedimensionada = IplImage.create(50, 75, imagemTeste.depth(), imagemTeste.nChannels());
-         cvResize(imagemTeste, imagemTesteRedimensionada, CV_INTER_AREA);
-
-         System.out.println("Saída da rede = " + (ocr.reconhecer(imagemTesteRedimensionada)));
-
-         imagem = imagemTeste.getBufferedImage();
-                       
-         ImageTools.mostrarImagem(imagem);
-         }//end if
-
-
-         /*
-         for (int i = 0; i < imagem.getHeight(); i++) {
-         for (int j = 0; j < imagem.getWidth(); j++) {
-         int argb = imagem.getRGB(j, i);
-         int r = (argb >> 16) & 0xff;
-         int g = (argb >> 8) & 0xff;
-         int b = (argb) & 0xff;
-
-         int tomDeCinza = (int) (r + g + b) / 3;
-
-         System.out.print("\t" + tomDeCinza);
-         }
-         System.out.println("");
-         }*/
-        //imagem = abrirImagem("sorriso1.jpg");
-        //ArrayList<CvRect> listaRetangulos = segmentar(imagem);
+        //Adicionando os observadores
+        this.janela.adicionarObservador(this);
+        this.janela.adicionarObservadorTreinar(this);
+        this.janela.adicionarObservadorReconhecer(this);
+        this.ocr.adicionarObservadorRede(this);
+        this.adicionarObservadorRede(janela);
     }
 
     /**
@@ -137,7 +66,7 @@ public class OCR_Controller implements Drawer_Observer, NeuralNet_Observable,
      * @param args
      */
     public static void main(String[] args) throws IOException {
-        new OCR_Controller().rodar();
+        new OCR_Controller();
     }
 
     //Adiciona uma imagem do painel ao treino
@@ -157,8 +86,10 @@ public class OCR_Controller implements Drawer_Observer, NeuralNet_Observable,
 
         imagemTreinoRedimensionada = IplImage.create(SIZE_X_NUMBERS, SIZE_Y_NUMBERS,
                 imagemTreino.depth(), imagemTreino.nChannels());//Cria a imagem para redimensionamento
-        cvResize(imagemTreino, imagemTreinoRedimensionada, CV_INTER_AREA);//Redimensiona
+        cvResize(imagemTreino, imagemTreinoRedimensionada, CV_INTER_CUBIC);//Redimensiona
         this.ocr.adicionarImagemAoTreino(imagemTreinoRedimensionada, classe);//Adiciona ao treinamento
+
+        ImageTools.mostrarImagem(imagemTreinoRedimensionada.getBufferedImage());
         if (classe == 1) {
             this.janela.incrementarContadorNumero();
         } else {
@@ -172,6 +103,36 @@ public class OCR_Controller implements Drawer_Observer, NeuralNet_Observable,
          else {
          JOptionPane.showConfirmDialog(null, "Certifique-se que o painel contenha um desenho contínuo");
          }//end else*/
+    }
+
+    private void reconhecer(BufferedImage imagemDoPainel) {
+        IplImage novaImagemTeste = cvCreateImage(cvSize(imagemDoPainel.getWidth(),
+                imagemDoPainel.getHeight()), IPL_DEPTH_8U, 1);
+        novaImagemTeste.copyFrom(imagemDoPainel);
+
+        ArrayList<CvRect> retangulos = segmentar(novaImagemTeste);
+
+        //if (retangulos.size() == 1) {
+        cvSetImageROI(novaImagemTeste, retangulos.get(0));//Define região de interesse
+        imagemTeste = cvCreateImage(cvGetSize(novaImagemTeste),
+                novaImagemTeste.depth(), novaImagemTeste.nChannels());//Cria uma nova imagem de treino
+        cvCopy(novaImagemTeste, imagemTeste);//Copia os dados para a nova imagem
+        cvResetImageROI(novaImagemTeste);//Reseta a região de interesse
+
+        imagemTesteRedimensionada = IplImage.create(SIZE_X_NUMBERS, SIZE_Y_NUMBERS,
+                imagemTeste.depth(), imagemTeste.nChannels());//Cria a imagem para redimensionamento
+        cvResize(imagemTeste, imagemTesteRedimensionada, CV_INTER_CUBIC);//Redimensiona
+        Integer classe = (int) this.ocr.reconhecer(imagemTesteRedimensionada);
+        ImageTools.mostrarImagem(imagemTesteRedimensionada.getBufferedImage());
+        if (classe == 1) {
+            JOptionPane.showConfirmDialog(null, "A imagem é um número!", "Resultado",
+                    JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE);
+        }//end if
+        else {
+            JOptionPane.showConfirmDialog(null, "A imagem não é um número!", "Resultado",
+                    JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE);
+        }//end else
+        this.janela.limpar();
     }
 
     public IplImage preprocessar(IplImage imagem) {
@@ -197,10 +158,6 @@ public class OCR_Controller implements Drawer_Observer, NeuralNet_Observable,
             // Elimina retangulos com largura maior que altura
             // Pois padrao do numero e altura > que largura
             opencv_core.CvRect retangulo = cvBoundingRect(contourLow, 0);
-            if (retangulo.width() >= retangulo.height()) {
-                contourLow = contourLow.h_next();
-                continue;
-            }
 
             // Elimina retangulos com tamanho muito pequeno
             // Pois estes provavelmente são ruidos
@@ -230,17 +187,17 @@ public class OCR_Controller implements Drawer_Observer, NeuralNet_Observable,
     }
 
     @Override
-    public void adicionarObservador(NeuralNet_Observer observador) {
+    public void adicionarObservadorRede(NeuralNet_Observer observador) {
         this.observadores.add(observador);
     }
 
     @Override
-    public void removerObservador(NeuralNet_Observer observador) {
+    public void removerObservadorRede(NeuralNet_Observer observador) {
         this.observadores.remove(observador);
     }
 
     @Override
-    public void notificar() {
+    public void notificarRede() {
         for (NeuralNet_Observer neuralNet_Observer : observadores) {
             neuralNet_Observer.atualizar(this.ocr);
         }
@@ -248,6 +205,18 @@ public class OCR_Controller implements Drawer_Observer, NeuralNet_Observable,
 
     @Override
     public void atualizar(NeuralNet_Observable observavel) {
-        notificar();
+        notificarRede();
+    }
+
+    @Override
+    public void atualizar(BotaoTreinar_Observable observavel) {
+        //TODO: Fazer janela de definição de parâmetros
+        this.ocr.treinarRede();
+    }
+
+    @Override
+    public void atualizar(BotaoReconhecer_Observable observavel) {
+        BufferedImage imagemDoPainel = ((Janela) observavel).getImagem();
+        this.reconhecer(imagemDoPainel);
     }
 }

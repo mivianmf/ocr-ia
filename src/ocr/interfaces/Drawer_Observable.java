@@ -11,5 +11,5 @@ package ocr.interfaces;
 public interface Drawer_Observable {
     public void adicionarObservador(Drawer_Observer observador);
     public void removerObservador(Drawer_Observer observador);
-    public void notificar();
+    public void notificarDesenho();
 }

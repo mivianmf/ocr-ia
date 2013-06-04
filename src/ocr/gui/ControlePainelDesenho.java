@@ -11,6 +11,10 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import javax.swing.JButton;
+import ocr.interfaces.BotaoReconhecer_Observable;
+import ocr.interfaces.BotaoReconhecer_Observer;
+import ocr.interfaces.BotaoTreinar_Observable;
+import ocr.interfaces.BotaoTreinar_Observer;
 import ocr.interfaces.ControleDesenhoObservador;
 import ocr.interfaces.Drawer_Observable;
 import ocr.interfaces.Drawer_Observer;
@@ -20,7 +24,8 @@ import ocr.interfaces.ImagemGetter;
  *
  * @author Rubico
  */
-public class ControlePainelDesenho extends Panel implements Drawer_Observable {
+public class ControlePainelDesenho extends Panel implements Drawer_Observable,
+        BotaoReconhecer_Observable, BotaoTreinar_Observable{
     
     private JButton salvar;
     private JButton limpar;
@@ -30,7 +35,8 @@ public class ControlePainelDesenho extends Panel implements Drawer_Observable {
     private ImagemGetter imageGetter = null;
     private ArrayList<Drawer_Observer> observadores = new ArrayList<>();
     private ArrayList<ControleDesenhoObservador> paineisObservadores = new ArrayList<>();
-    boolean treinar;
+    private ArrayList<BotaoReconhecer_Observer> observadoresReconhecer = new ArrayList<>();
+    private ArrayList<BotaoTreinar_Observer> observadoresTreinar = new ArrayList<>();
 
     public ControlePainelDesenho() {
         this.setLayout(new BorderLayout());
@@ -47,21 +53,25 @@ public class ControlePainelDesenho extends Panel implements Drawer_Observable {
 
             @Override
             public void actionPerformed(ActionEvent e) {
-                treinar = true;
-                notificar();
-                treinar = false;
+                notificarTreinar();
             }
         });
 
         this.reconhecer = new JButton("Reconhecer");
-        //this.limpar.addActionListener(new BotaoLimparObservador());
+        this.reconhecer.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                imageGetter.getImagem();
+                notificarReconhecer();
+            }
+        });
 
         this.adicionarTreinamento = new JButton("Adicionar");
         this.adicionarTreinamento.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 imageGetter.getImagem();
-                notificar();
+                notificarDesenho();
             }
         });
 
@@ -91,10 +101,44 @@ public class ControlePainelDesenho extends Panel implements Drawer_Observable {
     }
 
     @Override
-    public void notificar() {
+    public void notificarDesenho() {
         for (Drawer_Observer drawer_Observer : observadores) {
             drawer_Observer.atualizar(this);
         }//end for
+    }
+
+    @Override
+    public void adicionarObservadorReconhecer(BotaoReconhecer_Observer observador) {
+        this.observadoresReconhecer.add(observador);
+    }
+
+    @Override
+    public void removerObservadorReconhecer(BotaoReconhecer_Observer observador) {
+        this.observadoresReconhecer.remove(observador);
+    }
+
+    @Override
+    public void adicionarObservadorTreinar(BotaoTreinar_Observer observador) {
+        this.observadoresTreinar.add(observador);
+    }
+
+    @Override
+    public void removerObservadorTreinar(BotaoTreinar_Observer observador) {
+        this.observadoresTreinar.remove(observador);
+    }
+
+    @Override
+    public void notificarReconhecer() {
+        for (BotaoReconhecer_Observer observador : observadoresReconhecer) {
+            observador.atualizar(this);
+        }
+    }
+
+    @Override
+    public void notificarTreinar() {
+        for (BotaoTreinar_Observer observador : observadoresTreinar) {
+            observador.atualizar(this);
+        }
     }
 
     class BotaoSalvarAcao implements ActionListener {

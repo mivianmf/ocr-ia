@@ -9,7 +9,7 @@ package ocr.interfaces;
  * @author WashingtonLuis
  */
 public interface NeuralNet_Observable {
-    public void adicionarObservador(NeuralNet_Observer observador);
-    public void removerObservador(NeuralNet_Observer observador);
-    public void notificar();    
+    public void adicionarObservadorRede(NeuralNet_Observer observador);
+    public void removerObservadorRede(NeuralNet_Observer observador);
+    public void notificarRede();    
 }

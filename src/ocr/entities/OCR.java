@@ -37,13 +37,14 @@ public class OCR implements LearningEventListener, NeuralNet_Observable {
     private DataSet conjunto;
     private DimensionReducer redutor;
     private TransferFunctionType funcaoAtivacao;
-    public ArrayList<NeuralNet_Observer> observadores;
+    public ArrayList<NeuralNet_Observer> observadores = new ArrayList<>();
     private String estadoAtual;
 
     //CONSTRUTORES
     public OCR(TransferFunctionType funcaoAtivacao) {
         this.funcaoAtivacao = funcaoAtivacao;
         this.treino = new HashMap<>();
+        this.estadoAtual = "";
     }//end construtor
 
     public OCR(NeuralNetwork rede, Map<IplImage, Integer> treino,
@@ -57,8 +58,8 @@ public class OCR implements LearningEventListener, NeuralNet_Observable {
      * Treina a rede neural
      */
     public void treinarRede() {
-        double[][] entradas = new double[this.treino.size()][this.conjunto.size()];
-        double[][] saidasEsperadas = new double[this.treino.size()][1];
+        double[][] entradas;
+        double[][] saidasEsperadas;
         Integer[] saidasTemp = new Integer[this.treino.size()];
         IplImage[] imagensEntrada = new IplImage[this.treino.size()];
         this.treino.values().toArray(saidasTemp);
@@ -76,6 +77,9 @@ public class OCR implements LearningEventListener, NeuralNet_Observable {
                 this.conjunto.getInputSize(),
                 this.conjunto.getInputSize() + 1,
                 1);
+        
+        entradas = new double[this.treino.size()][this.conjunto.size()];
+        saidasEsperadas = new double[this.treino.size()][1];  
         
         for (int i = 0; i < this.treino.size(); i++) {
             entradas[i] = new double[this.conjunto.getInputSize()];
@@ -203,18 +207,20 @@ public class OCR implements LearningEventListener, NeuralNet_Observable {
             this.rede.calculate();
             double[] networkOutput = this.rede.getOutput();
 
-            System.out.print("Saída Esperada: " + testSetRow.getDesiredOutput()[0]);//Arrays.toString(testSetRow.getInput()));
-            System.out.print(" Saída: " + Arrays.toString(networkOutput));
-            System.out.println(" Arredondada: " + Math.round(networkOutput[0]));
+            this.estadoAtual += ("Saída Esperada: " + testSetRow.getDesiredOutput()[0]);//Arrays.toString(testSetRow.getInput()));
+            this.estadoAtual += (" Saída: " + Arrays.toString(networkOutput));
+            //this.estadoAtual += (" Arredondada: " + Math.round(networkOutput[0]));
+            this.estadoAtual += "\n";
+            notificarRede();
         }
     }
 
     @Override
     public void handleLearningEvent(LearningEvent event) {
         BackPropagation bp = (BackPropagation) event.getSource();
-        estadoAtual += (bp.getCurrentIteration() + ". iteração : "
-                + bp.getTotalNetworkError());
-        notificar();
+        this.estadoAtual += (bp.getCurrentIteration() + ". iteração : "
+                + bp.getTotalNetworkError()) + "\n";
+        notificarRede();
     }
 
     /**
@@ -240,17 +246,17 @@ public class OCR implements LearningEventListener, NeuralNet_Observable {
     }
     
     @Override
-    public void adicionarObservador(NeuralNet_Observer observador) {
+    public void adicionarObservadorRede(NeuralNet_Observer observador) {
         this.observadores.add(observador);
     }
 
     @Override
-    public void removerObservador(NeuralNet_Observer observador) {
+    public void removerObservadorRede(NeuralNet_Observer observador) {
         this.observadores.remove(observador);
     }
 
     @Override
-    public void notificar() {
+    public void notificarRede() {
         for (NeuralNet_Observer neuralNet_Observer : observadores) {
             neuralNet_Observer.atualizar(this);
         }

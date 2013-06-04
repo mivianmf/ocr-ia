@@ -177,7 +177,7 @@ public class ImageTools {
         CvMemStorage m = cvCreateMemStorage(0);
         CvSeq contornos = new CvSeq();
         cvFindContours(imgDst, m, contornos, Loader.sizeof(CvContour.class),
-                CV_RETR_LIST, CV_CHAIN_APPROX_SIMPLE);//, cvPoint(0, 0));
+                CV_RETR_LIST, CV_CHAIN_APPROX_SIMPLE);//, cvPoint(2, 2));
         return contornos;
     }
 

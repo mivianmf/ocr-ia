@@ -9,7 +9,7 @@ package ocr.interfaces;
  * @author WashingtonLuis
  */
 public interface BotaoTreinar_Observable {
-    public void adicionarObservador(BotaoTreinar_Observer observador);
-    public void removerObservador(BotaoTreinar_Observer observador);
-    public void notificar();       
+    public void adicionarObservadorTreinar(BotaoTreinar_Observer observador);
+    public void removerObservadorTreinar(BotaoTreinar_Observer observador);
+    public void notificarTreinar();       
 }
