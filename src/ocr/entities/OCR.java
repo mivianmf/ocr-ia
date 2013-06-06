@@ -31,7 +31,6 @@ import org.neuroph.util.TransferFunctionType;
  * @author Bruno, Mívian e Washington
  */
 public class OCR implements LearningEventListener, NeuralNet_Observable {
-
     private NeuralNetwork rede;
     private Map<IplImage, Integer> treino;
     private DataSet conjunto;
@@ -63,6 +62,8 @@ public class OCR implements LearningEventListener, NeuralNet_Observable {
         Integer[] saidasTemp = new Integer[this.treino.size()];
         IplImage[] imagensEntrada = new IplImage[this.treino.size()];
         this.treino.values().toArray(saidasTemp);
+        
+        this.estadoAtual = "";
 
         //Redução de dimensionalidade
         redutor = new DimensionReducer();
@@ -97,9 +98,68 @@ public class OCR implements LearningEventListener, NeuralNet_Observable {
         // enable batch if using MomentumBackpropagation
         if (this.rede.getLearningRule() instanceof MomentumBackpropagation) {
             ((MomentumBackpropagation) this.rede.getLearningRule()).setBatchMode(true);
-            //((MomentumBackpropagation)this.rede.getLearningRule()).setLearningRate(0.1);
-            ((MomentumBackpropagation)this.rede.getLearningRule()).setMaxError(0.01);
-            ((MomentumBackpropagation)this.rede.getLearningRule()).setMaxIterations(10000);
+        }//end if
+
+        LearningRule learningRule = this.rede.getLearningRule();
+        learningRule.addListener(this);
+
+        //Realiza o aprendizado
+        System.out.println("Treinando a rede...");
+        this.rede.learn(this.conjunto, learningRule);
+
+        //Testa os perceptrons
+        System.out.println("Testando a rede...");
+        this.testarRede();
+    }//end treinarRede
+    
+    /**
+     * Treina a rede neural
+     */
+    public void treinarRede(double maxErro, double taxaAprendizagem) {
+        double[][] entradas;
+        double[][] saidasEsperadas;
+        Integer[] saidasTemp = new Integer[this.treino.size()];
+        IplImage[] imagensEntrada = new IplImage[this.treino.size()];
+        this.treino.values().toArray(saidasTemp);
+
+        this.estadoAtual = "";
+        
+        //Redutor de dimensionalidade
+        redutor = new DimensionReducer();
+
+        //Converte treino para vetor de IplImage e começa a redução
+        this.treino.keySet().toArray(imagensEntrada);
+        redutor.reduce(imagensEntrada, this.treino.size());
+        
+        this.conjunto = new DataSet(this.treino.size() - 1, 1);//Cria conjunto de treino
+        this.rede = new MultiLayerPerceptron(//Define nova camada multilayer
+                this.funcaoAtivacao,
+                this.conjunto.getInputSize(),
+                this.conjunto.getInputSize() + 1,
+                1);
+        
+        entradas = new double[this.treino.size()][this.conjunto.size()];
+        saidasEsperadas = new double[this.treino.size()][1];  
+        
+        for (int i = 0; i < this.treino.size(); i++) {
+            entradas[i] = new double[this.conjunto.getInputSize()];
+            for (int j = 0; j < entradas[i].length; j++) {
+                entradas[i][j] = redutor.projectedTrainNumberMat.get(i, j);
+            }//end for
+
+            saidasEsperadas[i] = new double[1];
+            saidasEsperadas[i][0] = (double) saidasTemp[i].intValue();
+
+            //Adicionando no conjunto de treinamento
+            this.conjunto.addRow(entradas[i], saidasEsperadas[i]);
+        }//end for
+
+        // enable batch if using MomentumBackpropagation
+        if (this.rede.getLearningRule() instanceof MomentumBackpropagation) {
+            ((MomentumBackpropagation) this.rede.getLearningRule()).setBatchMode(true);
+            ((MomentumBackpropagation)this.rede.getLearningRule()).setLearningRate(taxaAprendizagem);
+            ((MomentumBackpropagation)this.rede.getLearningRule()).setMaxError(maxErro);
+            //((MomentumBackpropagation)this.rede.getLearningRule()).setMaxIterations(10000);
         }//end if
 
         LearningRule learningRule = this.rede.getLearningRule();

@@ -45,7 +45,7 @@ import static com.googlecode.javacv.cpp.opencv_legacy.*;
 /**
  * Recognizes numbers.
  *
- * @author reed
+ * @author Bruno, Mívian e Washington
  */
 public class DimensionReducer {
 

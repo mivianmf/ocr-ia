@@ -6,7 +6,7 @@ package ocr.interfaces;
 
 /**
  *
- * @author WashingtonLuis
+ * @author Bruno, Mívian e Washington
  */
 public interface NeuralNet_Observable {
     public void adicionarObservadorRede(NeuralNet_Observer observador);

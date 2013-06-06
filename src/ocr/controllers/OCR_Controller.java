@@ -217,8 +217,8 @@ public class OCR_Controller implements Drawer_Observer, NeuralNet_Observable,
 
     @Override
     public void atualizar(BotaoTreinar_Observable observavel) {
-        //TODO: Fazer janela de definição de parâmetros
-        this.ocr.treinarRede();
+        this.ocr.treinarRede(Double.parseDouble(((Janela) observavel).gettMaxErro().getText()),
+                Double.parseDouble(((Janela) observavel).gettAprendizagem().getText()));
     }
 
     @Override

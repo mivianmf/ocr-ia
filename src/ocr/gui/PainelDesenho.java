@@ -18,7 +18,7 @@ import ocr.interfaces.ImagemGetter;
 
 /**
  *
- * @author 407456
+ * @author Bruno, Mívian e Washington
  */
 public class PainelDesenho extends JPanel implements MouseListener, MouseMotionListener,
                                                      ImagemGetter, ControleDesenhoObservador{
@@ -32,6 +32,7 @@ public class PainelDesenho extends JPanel implements MouseListener, MouseMotionL
     
     public void initComponents(){
         
+        this.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 1, true));
         this.setBackground(Color.black);
         this.addMouseListener(this);
         this.addMouseMotionListener(this);

@@ -22,7 +22,7 @@ import ocr.interfaces.ImagemGetter;
 
 /**
  *
- * @author Rubico
+ * @author Bruno, Mívian e Washington
  */
 public class ControlePainelDesenho extends Panel implements Drawer_Observable,
         BotaoReconhecer_Observable, BotaoTreinar_Observable{

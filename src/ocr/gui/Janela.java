@@ -21,6 +21,8 @@ import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.border.BevelBorder;
+import javax.swing.border.Border;
 import ocr.entities.OCR;
 import ocr.interfaces.BotaoReconhecer_Observable;
 import ocr.interfaces.BotaoReconhecer_Observer;
@@ -33,7 +35,7 @@ import ocr.interfaces.NeuralNet_Observer;
 
 /**
  *
- * @author 407456
+ * @author Bruno, Mívian e Washington
  */
 public class Janela extends JFrame implements Drawer_Observable, Drawer_Observer,
         NeuralNet_Observer, BotaoReconhecer_Observable, BotaoReconhecer_Observer,
@@ -55,6 +57,11 @@ public class Janela extends JFrame implements Drawer_Observable, Drawer_Observer
     private ButtonGroup grupo;
     private JTextArea area;
     private BufferedImage imagem;
+    private JLabel lMaxErro;
+    private JLabel lAprendizagem;
+    private JTextField tMaxErro;
+    private JTextField tAprendizagem;
+    
 
     public Janela() {
         initComponents();
@@ -75,15 +82,16 @@ public class Janela extends JFrame implements Drawer_Observable, Drawer_Observer
         esquerdaPanel = new Panel();
         esquerdaPanel.setLayout(new BorderLayout());
         esquerdaPanel.setBounds(0, 0, bounds.getSize().width / 2, bounds.getSize().height - 38);
-        esquerdaPanel.setBackground(Color.red);
+        //esquerdaPanel.setBackground(Color.darkGray);
         container.add(esquerdaPanel);
 
         direitaPanel = new Panel();
         direitaPanel.setLayout(new BorderLayout());
         direitaPanel.setBounds(bounds.getSize().width / 2 + 5, 10,
                 bounds.getSize().width / 2 - 20, bounds.getSize().height - 45);
-        direitaPanel.setBackground(Color.blue);
+        //direitaPanel.setBackground(Color.darkGray);
         container.add(direitaPanel);
+        //container.setBackground(Color.darkGray);
 
         //Criação das Imagens
         esquerdaPanel.setLayout(null);
@@ -97,11 +105,11 @@ public class Janela extends JFrame implements Drawer_Observable, Drawer_Observer
         esquerdaPanel.add(lcontador);
 
         JLabel lcontadorNum = new JLabel("Classe 1");
-        lcontadorNum.setBounds(30, 70, 60, 25);
+        lcontadorNum.setBounds(28, 70, 60, 25);
         esquerdaPanel.add(lcontadorNum);
 
         JLabel lcontadorNaoNum = new JLabel("Classe 2");
-        lcontadorNaoNum.setBounds(100, 70, 100, 25);
+        lcontadorNaoNum.setBounds(110, 70, 100, 25);
         esquerdaPanel.add(lcontadorNaoNum);
 
         grupo = new ButtonGroup();
@@ -113,18 +121,19 @@ public class Janela extends JFrame implements Drawer_Observable, Drawer_Observer
         area.setWrapStyleWord(true);
         area.setEditable(false);
         area.setCaretPosition(area.getText().length());
-
+        this.area.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 1, true));
+        
         JScrollPane scroll = new JScrollPane(area);
         scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
         scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
 
         this.add(scroll);
 
-        classe1.setBounds(10, 30, 100, 25);
-        classe1.setBackground(Color.red);
+        classe1.setBounds(10, 30, 80, 25);
+        //classe1.setBackground(Color.darkGray);
         classe1.setSelected(true);
-        classe2.setBounds(120, 30, 100, 25);
-        classe2.setBackground(Color.red);
+        classe2.setBounds(125, 30, 100, 25);
+        //classe2.setBackground(Color.darkGray);
         grupo.add(classe1);
         grupo.add(classe2);
 
@@ -143,6 +152,21 @@ public class Janela extends JFrame implements Drawer_Observable, Drawer_Observer
         contadorClasse2.setText("0");
         contadorClasse2.setEditable(false);
         esquerdaPanel.add(contadorClasse2);
+        
+        this.lMaxErro = new JLabel("Taxa mínima de Erro");
+        this.lAprendizagem = new JLabel("Taxa de Aprendizagem");
+        this.tMaxErro = new JTextField("0.001");
+        this.tAprendizagem = new JTextField("0.1");
+                
+        this.lMaxErro.setBounds(250, 10, 150, 20);
+        this.tMaxErro.setBounds(280, 32, 70, 25);
+        esquerdaPanel.add(this.tMaxErro);
+        esquerdaPanel.add(this.lMaxErro);
+        
+        this.lAprendizagem.setBounds(250, 60, 150, 20);
+        this.tAprendizagem.setBounds(280, 80, 70, 25);
+        esquerdaPanel.add(this.tAprendizagem);
+        esquerdaPanel.add(this.lAprendizagem);
 
         this.painelDesenho = new PainelDesenho();
         this.direitaPanel.add(painelDesenho, BorderLayout.CENTER);
@@ -185,6 +209,14 @@ public class Janela extends JFrame implements Drawer_Observable, Drawer_Observer
         return this.classe;
     }
 
+    public JTextField gettMaxErro() {
+        return tMaxErro;
+    }
+
+    public JTextField gettAprendizagem() {
+        return tAprendizagem;
+    }
+   
     public void incrementarContadorClasse1() {
         this.contadorClasse1.setText("" + (Integer.parseInt(this.contadorClasse1.getText()) + 1));
     }
