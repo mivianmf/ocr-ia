@@ -1,0 +1,1 @@
+Trabalho de Inteligência Artificial utilizando redes neurais para um reconhecedor de caracteres (OCR)
